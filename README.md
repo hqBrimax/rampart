@@ -27,11 +27,12 @@ On the live instruction, before lamports move:
 
 - destination allowlist
 - per-tx USD cap
-- per-epoch USD cap
+- per-epoch USD cap (a ~15 minute rate limit, despite the `DailyCapExceeded` name)
 - Pyth price band against the vault's reference
 - halted feed
+- stale feed (refused if the last publish is older than 150 slots)
 - owner freeze
-- timelock on policy changes
+- timelock on policy changes (~24 seconds; a defence-in-depth control, not the trust boundary)
 - agent cannot withdraw (withdraw requires the owner signature; the transaction is never sent)
 
 Observed refusals from the devnet demo:
@@ -45,8 +46,11 @@ Observed refusals from the devnet demo:
 | `PolicyNotEffective` | 6016 |
 | `PriceDeviationTooHigh` | 6013 |
 | `PriceHalted` | 6011 |
+| `PriceStale` | 6027 |
 
-`PriceHalted` is a halted feed, not a staleness check. Feed pinning and a staleness window are not in this program.
+`PriceHalted` is a halted feed. `PriceStale` is a staleness check (the last publish is
+older than 150 slots). Feed pinning, the staleness window, and the reference refresh are
+in the source but **not in the deployed binary** - see `docs/gaps.md`.
 
 ## Accounts
 

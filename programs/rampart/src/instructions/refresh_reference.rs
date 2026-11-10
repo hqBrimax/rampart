@@ -25,6 +25,7 @@ pub fn handle_refresh_reference(ctx: Context<RefreshReference>) -> Result<()> {
     }
     let feed_data = ctx.accounts.price_feed.try_borrow_data()?;
     let price = pyth::decode_price(&feed_data)?;
+    pyth::assert_fresh(&price, Clock::get()?.slot)?;
     if price.expo != ctx.accounts.vault.reference_expo {
         return err!(ErrorCode::PriceExponentInvalid);
     }

@@ -3,9 +3,10 @@ use anchor_lang::prelude::*;
 declare_id!("2xbNzbkEZ65hLzi9TgdMBcncup6a5CA1qi3QLVTrwQ2p");
 
 pub const PYTH_EXPO_OFFSET: usize = 0x14;
-pub const PYTH_PRICE_OFFSET: usize = 0x30;
-pub const PYTH_STATUS_OFFSET: usize = 0x44;
-pub const PYTH_MIN_DATA_LEN: usize = 0x45;
+pub const PYTH_PRICE_OFFSET: usize = 0xD0;
+pub const PYTH_STATUS_OFFSET: usize = 0xE0;
+pub const PYTH_PUB_SLOT_OFFSET: usize = 0xE8;
+pub const PYTH_MIN_DATA_LEN: usize = 0xF0;
 
 pub const STATUS_TRADING: u8 = 1;
 
@@ -39,9 +40,11 @@ pub mod oracle_mock {
         if data.len() < PYTH_MIN_DATA_LEN {
             return err!(MockError::FeedTooShort);
         }
+        let slot = Clock::get()?.slot;
         data[PYTH_EXPO_OFFSET..PYTH_EXPO_OFFSET + 4].copy_from_slice(&expo.to_le_bytes());
         data[PYTH_PRICE_OFFSET..PYTH_PRICE_OFFSET + 8].copy_from_slice(&price.to_le_bytes());
         data[PYTH_STATUS_OFFSET] = status;
+        data[PYTH_PUB_SLOT_OFFSET..PYTH_PUB_SLOT_OFFSET + 8].copy_from_slice(&slot.to_le_bytes());
         Ok(())
     }
 }

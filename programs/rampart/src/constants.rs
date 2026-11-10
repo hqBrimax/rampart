@@ -18,9 +18,23 @@ pub const AGENT_SEED: &[u8] = b"rampart_agent";
 #[constant]
 pub const MAX_ALLOWLIST: usize = 16;
 
+/// Policy changes take this many slots to become effective.
+///
+/// This is a *defence-in-depth* control for a trusted owner, not the main trust
+/// boundary: withdraw is owner-signed and untimelocked, so a compromised owner
+/// key can always take the funds immediately. Raising this only slows a policy
+/// change (for example, raising the caps). ~24 seconds at 400 ms/slot.
+///
+/// It is fixed at init and cannot be changed afterwards. A future version
+/// should let the owner choose it at init.
 #[constant]
 pub const DEFAULT_TIMELOCK_SLOTS: u64 = 60;
 
+/// Length of one spend-tracking epoch.
+///
+/// Despite the `DailyCapExceeded` error name (kept for compatibility with the
+/// published error table), this is ~15 minutes at 400 ms/slot, not a day. It is
+/// a rate limit, not a daily cap. A real daily cap would be ~216_000 slots.
 #[constant]
 pub const DEFAULT_EPOCH_SLOTS: u64 = 2160;
 

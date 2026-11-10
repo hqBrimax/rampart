@@ -35,6 +35,8 @@ const E_DBC_QUOTE_FAILED: u32 = 6023;
 const E_POOL_IMPACT_TOO_HIGH: u32 = 6024;
 const E_POOL_TOO_LATE: u32 = 6025;
 const E_FEED_MISMATCH: u32 = 6026;
+const E_STALE: u32 = 6027;
+const E_INVALID_CAP: u32 = 6014;
 
 const SOL_PRICE: i64 = 20_000_000_000;
 const SOL_EXPO: i32 = -8;
@@ -60,11 +62,34 @@ fn pda(program_id: &Pubkey, seeds: &[&[u8]]) -> Pubkey {
 }
 
 fn feed_data(price: i64, expo: i32, status: u8) -> Vec<u8> {
+    feed_data_at(price, expo, status, 200)
+}
+
+/// Build a Pyth-v2-layout feed. `slot` is the publish slot, which the vault
+/// checks for staleness against the current slot.
+fn feed_data_at(price: i64, expo: i32, status: u8, slot: u64) -> Vec<u8> {
     let mut data = vec![0u8; 0x100];
     data[0x14..0x18].copy_from_slice(&expo.to_le_bytes());
-    data[0x30..0x38].copy_from_slice(&price.to_le_bytes());
-    data[0x44] = status;
+    data[0xD0..0xD8].copy_from_slice(&price.to_le_bytes());
+    data[0xE0] = status;
+    data[0xE8..0xF0].copy_from_slice(&slot.to_le_bytes());
     data
+}
+
+/// Overwrite the vault's feed with the given price, published at `slot`.
+fn set_feed(env: &mut TestEnv, price: i64, expo: i32, status: u8, slot: u64) {
+    env.svm
+        .set_account(
+            env.feed,
+            Account {
+                lamports: 1_000_000_000,
+                data: feed_data_at(price, expo, status, slot),
+                owner: system_program::ID,
+                executable: false,
+                rent_epoch: 0,
+            },
+        )
+        .unwrap();
 }
 
 fn send(
@@ -163,6 +188,13 @@ fn deposit(env: &mut TestEnv, lamports: u64) {
 }
 
 fn propose_allowlist(env: &mut TestEnv, dests: Vec<Pubkey>, daily: u64, per_tx: u64, slippage: u16, epoch: u64) {
+    expect_ok(
+        propose_allowlist_raw(env, dests, daily, per_tx, slippage, epoch),
+        "propose_allowlist",
+    );
+}
+
+fn propose_allowlist_raw(env: &mut TestEnv, dests: Vec<Pubkey>, daily: u64, per_tx: u64, slippage: u16, epoch: u64) -> TransactionResult {
     let ix = Instruction::new_with_bytes(
         rampart::id(),
         &rampart::instruction::ProposePolicy {
@@ -180,10 +212,7 @@ fn propose_allowlist(env: &mut TestEnv, dests: Vec<Pubkey>, daily: u64, per_tx: 
         }
         .to_account_metas(None),
     );
-    expect_ok(
-        send(&mut env.svm, &env.owner, &[&env.owner], &ix),
-        "propose_policy",
-    );
+    send(&mut env.svm, &env.owner, &[&env.owner], &ix)
 }
 
 fn apply_policy(env: &mut TestEnv) -> TransactionResult {
@@ -348,6 +377,7 @@ fn daily_cap_enforced_and_resets_by_epoch() {
 
     let before = treasury_lamports(&env);
     env.svm.warp_to_slot(400);
+    set_feed(&mut env, SOL_PRICE, SOL_EXPO, 1, 400);
     assert_custom(
         guarded_transfer(&mut env, 4_000_000_000, dest, feed),
         E_DAILY_CAP,
@@ -355,6 +385,7 @@ fn daily_cap_enforced_and_resets_by_epoch() {
     assert_eq!(treasury_lamports(&env), before);
 
     env.svm.warp_to_slot(200 + EPOCH_SLOTS + 1);
+    set_feed(&mut env, SOL_PRICE, SOL_EXPO, 1, 200 + EPOCH_SLOTS + 1);
     let before_rollover = treasury_lamports(&env);
     expect_ok(
         guarded_transfer(&mut env, 6_000_000_000, dest, feed),
@@ -556,8 +587,9 @@ fn oracle_pump_outside_slippage_is_blocked() {
         .unwrap();
 
     let before = treasury_lamports(&env);
+    let feed = env.feed;
     assert_custom(
-        guarded_transfer(&mut env, 5_000_000_000, dest, env.feed),
+        guarded_transfer(&mut env, 5_000_000_000, dest, feed),
         E_DEV_TOO_HIGH,
     );
     assert_eq!(treasury_lamports(&env), before);
@@ -584,8 +616,9 @@ fn halted_feed_is_blocked() {
         )
         .unwrap();
 
+    let feed = env.feed;
     assert_custom(
-        guarded_transfer(&mut env, 5_000_000_000, dest, env.feed),
+        guarded_transfer(&mut env, 5_000_000_000, dest, feed),
         E_NOT_TRADING,
     );
 }
@@ -919,5 +952,34 @@ fn agent_cannot_swap_the_pinned_feed() {
     assert_custom(
         guarded_transfer(&mut env, 1_000_000_000, dest, other),
         E_FEED_MISMATCH,
+    );
+}
+
+#[test]
+fn stale_price_is_blocked() {
+    let mut env = setup();
+    let dest = Pubkey::new_unique();
+    propose_allowlist(&mut env, vec![dest], DAILY_CAP_MICRO, PER_TX_CAP_MICRO, 100, EPOCH_SLOTS);
+    env.svm.warp_to_slot(200);
+    apply_policy_ok(&mut env);
+
+    // Published at slot 1, spent at slot 200: older than MAX_SLOT_AGE.
+    set_feed(&mut env, SOL_PRICE, SOL_EXPO, 1, 1);
+    let feed = env.feed;
+    assert_custom(
+        guarded_transfer(&mut env, 5_000_000_000, dest, feed),
+        E_STALE,
+    );
+}
+
+#[test]
+fn zero_epoch_is_refused() {
+    let mut env = setup();
+    let dest = Pubkey::new_unique();
+    // A zero epoch would make clock.slot / epoch_len_slots divide by zero and
+    // brick the vault, so it must be refused before it is stored.
+    assert_custom(
+        propose_allowlist_raw(&mut env, vec![dest], DAILY_CAP_MICRO, PER_TX_CAP_MICRO, 100, 0),
+        E_INVALID_CAP,
     );
 }

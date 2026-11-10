@@ -25,7 +25,7 @@ pub fn handle_propose_policy(
     epoch_len_slots: u64,
     allowlist: Vec<Pubkey>,
 ) -> Result<()> {
-    if daily_usd_cap_micro == 0 || per_tx_usd_cap_micro == 0 {
+    if daily_usd_cap_micro == 0 || per_tx_usd_cap_micro == 0 || epoch_len_slots == 0 {
         return err!(ErrorCode::InvalidCap);
     }
     if allowlist.len() > MAX_ALLOWLIST {

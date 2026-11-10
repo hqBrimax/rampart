@@ -17,8 +17,14 @@ FYEO scan, 13 Oct 2026, commit `1f54fe2`. Ten findings. Triage:
 
 Still open, and still not in any binary:
 
-- No staleness window. A feed that says trading and has not published still passes.
+- The staleness window is now in source (150 slots), but it is not in the deployed program. A feed that says trading and has not published still passes on devnet.
 - `guarded_dbc_transfer` is source and CI only.
 - No swap. The vault does not call Meteora.
+
+Fixed in source since the scan, none of it in the deployed binary:
+
+- The Pyth offsets were wrong: the program read the EMA price as the price and padding as the status. Corrected to the real v2 layout (`agg.price` at `0xD0`, `agg.status` at `0xE0`, `agg.pub_slot` at `0xE8`).
+- A zero epoch length would divide by zero and brick the vault; now refused.
+- The test suite did not compile, so CI had been red since 18 Oct; the two borrow errors are fixed.
 
 Do not move mainnet SOL until the feed pin, the refresh, and a staleness window are in the binary that would hold the funds.

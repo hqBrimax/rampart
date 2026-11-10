@@ -56,5 +56,8 @@ pub enum ErrorCode {
     PoolTooLate,
     #[msg("Price feed is not the feed pinned at vault init")]
     FeedMismatch,
+    // Appended, not inserted: the error codes above are published and must not shift.
+    #[msg("Pyth price is stale")]
+    PriceStale,
 }
 

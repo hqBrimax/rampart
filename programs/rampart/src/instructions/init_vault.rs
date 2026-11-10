@@ -49,6 +49,7 @@ pub fn handle_init_vault(
 
     let feed_data = ctx.accounts.price_feed.try_borrow_data()?;
     let price = pyth::decode_price(&feed_data)?;
+    pyth::assert_fresh(&price, Clock::get()?.slot)?;
 
     let vault_key = ctx.accounts.vault.key();
     let t_bump = treasury_bump(&vault_key)?;

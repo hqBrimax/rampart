@@ -26,6 +26,11 @@ pub fn handle_apply_policy(ctx: Context<ApplyPolicy>) -> Result<()> {
     if clock.slot < policy.pending_effective_slot {
         return err!(ErrorCode::PolicyNotEffective);
     }
+    // Defensive: propose_policy rejects a zero epoch, but a policy already in
+    // storage (from an older program version) must not be able to brick the vault.
+    if policy.pending_epoch_len_slots == 0 {
+        return err!(ErrorCode::InvalidCap);
+    }
 
     policy.daily_usd_cap_micro = policy.pending_daily_usd_cap_micro;
     policy.per_tx_usd_cap_micro = policy.pending_per_tx_usd_cap_micro;
