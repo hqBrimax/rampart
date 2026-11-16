@@ -50,7 +50,7 @@ function Status() {
       </div>
       <div>
         <dt>Source only</dt>
-        <dd>curve guard, feed pin, reference refresh</dd>
+        <dd>curve guard, feed pin, 150-slot staleness check, reference refresh</dd>
       </div>
       <div>
         <dt>Mainnet</dt>
