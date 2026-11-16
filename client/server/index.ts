@@ -12,7 +12,7 @@ import { loadPayer, RPC_URL, PROGRAM_ID, MOCK_PROGRAM_ID } from "../src/env.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const PORT = Number(process.env.PORT ?? 8788);
+const PORT = Number(process.env.PORT ?? 3000);
 const payer = (() => {
   try { return loadPayer(); }
   catch (error) {
