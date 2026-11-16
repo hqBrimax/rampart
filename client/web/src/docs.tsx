@@ -23,6 +23,9 @@ const PAGES = [
   { href: "/docs", label: "Docs" },
   { href: "/changelog", label: "Changelog" },
   { href: "/status", label: "Status" },
+  { href: "/docs/accounts", label: "Accounts" },
+  { href: "/docs/policies", label: "Policies" },
+  { href: "/docs/errors", label: "Error codes" },
 ];
 
 function Status() {
