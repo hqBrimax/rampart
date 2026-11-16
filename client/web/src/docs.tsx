@@ -7,7 +7,8 @@ function Shell({ children }: { children: React.ReactNode }) {
           <span className="tag">policy vaults for trading agents</span>
         </div>
         <nav className="hdr-right">
-          <a className="pill" href="/">home</a>\n          <a className="pill" href="/whitepaper">whitepaper</a>
+          <a className="pill" href="/">home</a>
+          <a className="pill" href="/whitepaper">whitepaper</a>
           <a className="pill" href="/docs">docs</a>
           <a className="pill" href="/changelog">changelog</a>
           <a className="pill" href="/status">status</a>
