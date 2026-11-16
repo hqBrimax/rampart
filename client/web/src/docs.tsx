@@ -19,13 +19,10 @@ function Shell({ children }: { children: React.ReactNode }) {
 }
 
 const PAGES = [
-  { href: "/docs", label: "Start" },
-  { href: "/docs/what", label: "What it is" },
-  { href: "/docs/live", label: "What is live" },
-  { href: "/docs/not-live", label: "What is not live" },
-  { href: "/docs/threat-model", label: "Threat model" },
-  { href: "/docs/non-claims", label: "Non-claims" },
-  { href: "/docs/try", label: "Try it" },
+  { href: "/", label: "Whitepaper" },
+  { href: "/docs", label: "Docs" },
+  { href: "/changelog", label: "Changelog" },
+  { href: "/status", label: "Status" },
 ];
 
 function Status() {
