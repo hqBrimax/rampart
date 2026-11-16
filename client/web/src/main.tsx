@@ -8,14 +8,14 @@ import "./styles.css";
 
 const path = window.location.pathname.replace(/\/$/, "") || "/";
 const page =
-  path === "/changelog"
+  path === "/whitepaper"
+    ? <Whitepaper />
+    : path === "/changelog"
     ? <ChangelogPage />
     : path === "/status"
     ? <StatusPage />
     : path.startsWith("/docs")
     ? <DocsPage path={path} />
-    : path === "/"
-    ? <Whitepaper />
     : <App />;
 
 createRoot(document.getElementById("root")!).render(

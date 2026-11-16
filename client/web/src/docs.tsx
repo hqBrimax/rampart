@@ -7,7 +7,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           <span className="tag">policy vaults for trading agents</span>
         </div>
         <nav className="hdr-right">
-          <a className="pill" href="/">demo</a>
+          <a className="pill" href="/whitepaper">whitepaper</a>
           <a className="pill" href="/docs">docs</a>
           <a className="pill" href="/changelog">changelog</a>
           <a className="pill" href="/status">status</a>
@@ -19,7 +19,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 }
 
 const PAGES = [
-  { href: "/", label: "Whitepaper" },
+  { href: "/whitepaper", label: "Whitepaper" },
   { href: "/docs", label: "Docs" },
   { href: "/changelog", label: "Changelog" },
   { href: "/status", label: "Status" },
@@ -28,13 +28,34 @@ const PAGES = [
 function Status() {
   return (
     <dl className="docs-status">
-      <div><dt>Version</dt><dd>0.1</dd></div>
-      <div><dt>Status</dt><dd>public draft</dd></div>
-      <div><dt>Network</dt><dd>Solana devnet</dd></div>
-      <div><dt>Program</dt><dd className="mono">6Ea4Sq… immutable</dd></div>
-      <div><dt>Live</dt><dd>allowlist, caps, Pyth band, halt, freeze, timelock</dd></div>
-      <div><dt>Source only</dt><dd>curve guard, feed pin, reference refresh</dd></div>
-      <div><dt>Mainnet</dt><dd>not deployed</dd></div>
+      <div>
+        <dt>Version</dt>
+        <dd>0.1</dd>
+      </div>
+      <div>
+        <dt>Status</dt>
+        <dd>public draft</dd>
+      </div>
+      <div>
+        <dt>Network</dt>
+        <dd>Solana devnet</dd>
+      </div>
+      <div>
+        <dt>Program</dt>
+        <dd className="mono">6Ea4SqpMwVE57cghBU4LqhZBSs573cQ8o8FXDitKUHEr</dd>
+      </div>
+      <div>
+        <dt>Live</dt>
+        <dd>allowlist, caps, Pyth band, halt, freeze, timelock</dd>
+      </div>
+      <div>
+        <dt>Source only</dt>
+        <dd>curve guard, feed pin, reference refresh</dd>
+      </div>
+      <div>
+        <dt>Mainnet</dt>
+        <dd>not deployed</dd>
+      </div>
     </dl>
   );
 }
