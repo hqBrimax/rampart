@@ -230,6 +230,29 @@ export default function App() {
 
   return (
     <div className="app">
+      {/* Product intro — what Rampart does */}
+      <section className="product-hero">
+        <div className="product-hero__inner">
+          <p className="product-hero__tag">On-chain policy vault · devnet · immutable program</p>
+          <h1 className="product-hero__title">
+            The agent signs. The <span className="accent">program</span> decides.
+          </h1>
+          <p className="product-hero__desc">
+            An AI trading agent can be talked into moving money it should not move. A token name, a scraped
+            page, or an API response can change what the agent believes it is allowed to do. It signs a
+            transfer. The owner finds out from the explorer.
+          </p>
+          <p className="product-hero__desc">
+            Rampart splits those keys. The agent holds a spending key with no authority. A compromised agent
+            key can request a drain. It cannot sign one.
+          </p>
+          <div className="product-hero__actions">
+            <a className="btn primary" href="/docs">Read the docs</a>
+            <a className="btn secondary" href="/changelog">Run the demo</a>
+          </div>
+        </div>
+      </section>
+
       <header>
         <div className="brand">
           <span className="logo">▮ RAMPART</span>
