@@ -60,9 +60,6 @@ export default function App() {
   const [state, setState] = useState<State>({});
   const [apiError, setApiError] = useState("");
   const [stateError, setStateError] = useState("");
-  const [token, setToken] = useState("");
-  const [actionError, setActionError] = useState("");
-  const [busy, setBusy] = useState(false);
   const [lastChecked, setLastChecked] = useState("");
   const runningRef = useRef(false);
   runningRef.current = demo.status === "running";
@@ -87,13 +84,16 @@ export default function App() {
     void poll();
     return () => { cancelled = true; clearTimeout(timer); };
   }, [load]);
-  const perform = async (kind: "run" | "reset") => {
-    setBusy(true); setActionError("");
-    try {
-      await request(`/api/demo/${kind}`, { method: "POST", headers: { "x-rampart-token": token } });
-      await load();
-    } catch (error) { setActionError(errorMessage(error)); }
-    finally { setBusy(false); }
+  const runPublicWalkthrough = () => {
+    const now = Date.now();
+    setDemo({
+      status: "done",
+      steps: [
+        { seq: 1, label: "Allowed destination", status: "ok", detail: "SIMULATED — destination is included in the example policy allowlist.", ts: now },
+        { seq: 2, label: "Per-transaction cap exceeded", status: "rejected", detail: "SIMULATED — the example policy rejects a request above its transaction ceiling.", ts: now + 1 },
+        { seq: 3, label: "Destination not allowlisted", status: "rejected", detail: "SIMULATED — the example policy rejects a destination outside its allowlist.", ts: now + 2 },
+      ],
+    });
   };
   const active = demo.status === "running";
   const stateUnavailable = Boolean(stateError);
@@ -143,13 +143,16 @@ export default function App() {
         <div className="proof-panel"><div><span className="scope scope-deployed">DEVNET TRANSACTION</span><h3>DestinationNotAllowed</h3><p>Program error 6004 · the attempted destination was outside the vault allowlist.</p><code className="mono proof-hash">{TX}</code></div><a className="button button-secondary" href={`${EXPLORER}/tx/${TX}?cluster=devnet`} target="_blank" rel="noreferrer">Inspect transaction ↗</a></div>
       </section>
 
-      <section className="section section-border" id="demo"><div className="wrap"><SectionTitle index="04" eyebrow="DEVNET DEMONSTRATION" title="Inspect the system state." copy="The dashboard reads from the running API. No sample balances, fabricated transaction activity or simulated success states are shown." />
+      <section className="section section-border" id="demo"><div className="wrap"><SectionTitle index="04" eyebrow="DEVNET DEMONSTRATION" title="Inspect the system state." copy="Vault and policy data is read-only. The public walkthrough is explicitly simulated and never submits transactions." />
         <div className="demo-toolbar"><div><span className={`status-indicator ${apiError ? "is-down" : active ? "is-running" : "is-up"}`} /> <strong>{apiError ? "Demo API unavailable" : active ? "Demo run in progress" : `Demo status: ${demo.status}`}</strong><small>{lastChecked ? `Last checked ${lastChecked}` : "Waiting for first API response"}</small></div><button className="button button-secondary" onClick={() => void load()}>Refresh state</button></div>
-        {(apiError || stateError || actionError) && <div className="notice notice-error" role="alert"><strong>Attention required</strong><p>{actionError || apiError || stateError}</p></div>}
+        {(apiError || stateError) && <div className="notice notice-error" role="alert"><strong>Live devnet data unavailable</strong><p>{apiError || stateError}</p></div>}
         <div className="demo-grid"><section className="data-panel"><div className="panel-heading"><span>01 / VAULT STATE</span><span className="scope scope-deployed">LIVE API</span></div>{stateUnavailable ? <p className="empty-state">Vault state unavailable. {stateError}</p> : <><DataRow label="Vault"><Address value={state.vault}/></DataRow><DataRow label="Owner"><Address value={state.owner}/></DataRow><DataRow label="Treasury balance">{state.treasuryBalance == null ? "—" : `${state.treasuryBalance.toFixed(3)} SOL`}</DataRow><DataRow label="Frozen">{state.vaultState?.frozen == null ? "—" : state.vaultState.frozen ? "Yes" : "No"}</DataRow><DataRow label="Reference price">{state.vaultState?.referencePrice ?? "—"}</DataRow><DataRow label="Epoch spend">{state.spend?.spentUsd ? `$${state.spend.spentUsd}` : "—"}</DataRow></>}</section>
         <section className="data-panel"><div className="panel-heading"><span>02 / POLICY</span><span className="scope scope-deployed">LIVE API</span></div>{stateUnavailable ? <p className="empty-state">Policy unavailable until the state API responds.</p> : <><DataRow label="Per-transaction cap">{state.policy?.perTxUsd ? `$${state.policy.perTxUsd}` : "—"}</DataRow><DataRow label="Per-epoch cap">{state.policy?.dailyUsd ? `$${state.policy.dailyUsd}` : "—"}</DataRow><DataRow label="Max slippage">{state.policy?.maxSlippageBps == null ? "—" : `${state.policy.maxSlippageBps} bps`}</DataRow><DataRow label="Allowlisted destinations">{state.policy?.allowlist?.length ?? "—"}</DataRow><DataRow label="Agent"><Address value={state.agent}/></DataRow><DataRow label="Oracle price">{state.feedPrice ? `$${state.feedPrice}` : "—"}</DataRow></>}</section></div>
-        <section className="data-panel activity-panel"><div className="panel-heading"><span>03 / DEMO EXECUTION LOG</span><StatusBadge status={demo.status}/></div>{demo.error && <div className="notice notice-error" role="status">{demo.error}</div>}{demo.steps.length ? <ol className="event-list">{demo.steps.map(item => <Step key={item.seq} item={item}/>)}</ol> : <p className="empty-state">{apiError ? "Execution log unavailable while the API is unreachable." : "No demo run is currently recorded. Run access may require an operator-issued token."}</p>}
-          <div className="demo-controls"><label htmlFor="run-token">Demo access token <span>(optional; required when the server is protected)</span></label><input id="run-token" type="password" autoComplete="off" spellCheck={false} value={token} onChange={event => setToken(event.target.value)} placeholder="Enter operator-issued token" /><p className="field-hint">Held in page memory only. Sent in a request header; never saved or added to a URL.</p><div className="control-actions"><button className="button button-primary" disabled={busy || active} onClick={() => void perform("run")}>{busy ? "Sending…" : active ? "Run in progress" : "Run devnet demo"}</button><button className="button button-secondary" disabled={busy || !token} onClick={() => void perform("reset")}>Reset run</button></div></div>
+        <section className="data-panel activity-panel"><div className="panel-heading"><span>03 / PUBLIC POLICY WALKTHROUGH</span><StatusBadge status={demo.status}/></div>{demo.error && <div className="notice notice-error" role="status">{demo.error}</div>}{demo.steps.length ? <ol className="event-list">{demo.steps.map(item => <Step key={item.seq} item={item}/>)}</ol> : <p className="empty-state">{apiError ? "Live execution history is unavailable while the API is unreachable." : "No live execution has been recorded in this server session. Use the public walkthrough below to explore policy decisions."}</p>}
+          <div className="demo-controls">
+            <div className="notice"><strong>Public policy walkthrough</strong><p>This example is simulated in your browser. It does not sign, submit or represent real Solana transactions. Inspect the verified devnet transaction above for actual on-chain evidence.</p></div>
+            <div className="control-actions"><button className="button button-primary" onClick={runPublicWalkthrough}>Run policy walkthrough <span aria-hidden="true">→</span></button><button className="button button-secondary" onClick={() => setDemo({ status: "idle", steps: [] })}>Clear walkthrough</button></div>
+          </div>
         </section></div></section>
 
       <section className="section wrap"><SectionTitle index="05" eyebrow="PROJECT STATE" title="Early-stage infrastructure. Clearly scoped." copy="Rampart is a devnet research and demonstration project. Its current deployment has known limitations and has not been externally audited." /><div className="status-grid"><div><span>DEPLOYMENT</span><strong>Solana devnet</strong></div><div><span>PROGRAM ID</span><strong className="mono">{shorten(PROGRAM, 14)}</strong></div><div><span>EXTERNAL AUDIT</span><strong className="warning-text">Not completed</strong></div><div><span>MAINNET</span><strong className="warning-text">Not deployed</strong></div></div></section>
