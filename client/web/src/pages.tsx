@@ -9,12 +9,14 @@ function Shell({ children }: { children: React.ReactNode }) {
           <a className="logo" href="/">▮ RAMPART</a>
           <span className="tag">policy vaults for trading agents</span>
         </div>
-        <nav className="hdr-right">
-          <a className="pill" href="/">home</a>
-          <a className="pill" href="/docs">docs</a>
-          <a className="pill" href="/whitepaper">whitepaper</a>
-          <a className="pill" href="/changelog">changelog</a>
-          <a className="pill" href="/status">status</a>
+        <nav className="hdr-right" aria-label="Main navigation">
+          {[
+            { href: "/", label: "home" },
+            { href: "/whitepaper", label: "whitepaper" },
+            { href: "/docs", label: "docs" },
+            { href: "/changelog", label: "changelog" },
+            { href: "/status", label: "status" },
+          ].map((item) => <a className="pill" href={item.href} key={item.href}>{item.label}</a>)}
         </nav>
       </header>
       <main className="page">{children}</main>
