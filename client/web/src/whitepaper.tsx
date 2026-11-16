@@ -254,7 +254,7 @@ function Whitepaper() {
 
         <Section title="On-chain proof">
           <p>
-            On 30 October 2026, a <Code>guardedTransfer</Code> for 1000 SOL to an address not on the allowlist was
+            A documented <Code>guardedTransfer</Code> to an address not on the allowlist was
             finalized and failed with custom program error 6004. The rejection came
             from inside the program. The client did not catch it. The runtime did
             not catch it.

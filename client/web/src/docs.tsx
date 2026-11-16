@@ -91,6 +91,7 @@ function Start() {
       <p>Rampart is a Solana program that holds an agent's trading capital in a program-owned account. The agent signs a spend request. The program allows it or refuses it.</p>
       <p>This is a public draft of the spec. It describes what the deployed binary does, what is in source only, and what is not claimed. It is not a market document and it is not a token document.</p>
       <p>Program <span className="mono">6Ea4SqpMwVE57cghBU4LqhZBSs573cQ8o8FXDitKUHEr</span>. Deployed with <span className="mono">--final</span>. Upgrade authority is the system program and cannot be set again.</p>
+      <p>For a local client build: run <span className="mono">cd client</span>, <span className="mono">pnpm install</span>, then <span className="mono">pnpm run build:web</span>. The hosted demo is a long-running Express service; its sponsor wallet and RPC configuration remain server-side.</p>
     </Frame>
   );
 }

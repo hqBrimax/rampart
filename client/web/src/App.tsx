@@ -30,6 +30,7 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
 }
 function errorMessage(error: unknown) {
   const problem = error as ApiProblem;
+  if (problem?.status === 401 && problem.message?.toLowerCase().includes("not configured")) return "Demo execution is disabled: the server has no RAMPART_RUN_TOKEN configured. Contact the project operator.";
   if (problem?.status === 401 || problem?.status === 403) return "This action is protected. Enter the demo access token supplied by the project operator.";
   if (problem?.status === 409) return "A demo run is already in progress. Wait for it to finish or reset it.";
   if (problem?.status && problem.status >= 500) return "The API could not complete this request. Check service status and try again.";
