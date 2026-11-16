@@ -166,13 +166,59 @@ function Try() {
   return (
     <Frame path="/docs/try" title="Try it">
       <p>Demo: <a href="https://rampart.pxxl.click">rampart.pxxl.click</a></p>
-      <p>Repo: <a href="https://github.com/hqBrimax/rampart">github.com/NathanOyewole/rampart</a></p>
+      <p>Repo: <a href="https://github.com/hqBrimax/rampart">github.com/hqBrimax/rampart</a></p>
       <p>The demo spends a sponsor wallet of devnet SOL. A run needs the host token. The page shows the named refusals. The program id on the page is the immutable one.</p>
     </Frame>
   );
 }
 
+
+function Accounts() {
+  return <Frame path="/docs/accounts" title="Program accounts">
+    <p>Rampart stores vault state and spending authority in program-derived accounts. These accounts are owned by the program, not by an agent key.</p>
+    <ul>
+      <li><strong>Vault</strong> — derived from <code className="mono">rampart_vault</code> and the owner. Stores owner, frozen state, reference price and timelock configuration.</li>
+      <li><strong>Policy</strong> — derived from <code className="mono">rampart_policy</code> and the vault. Stores spending caps, slippage, destination allowlist and pending policy.</li>
+      <li><strong>SpendTracker</strong> — derived from <code className="mono">rampart_spend</code> and the vault. Tracks spend within the current epoch.</li>
+      <li><strong>Agent</strong> — derived from <code className="mono">rampart_agent</code>, vault and agent key. Records whether an agent is registered and active.</li>
+      <li><strong>Treasury</strong> — derived from <code className="mono">rampart_treasury</code> and the vault. Holds the vault capital.</li>
+    </ul>
+    <p>The owner remains trusted. Withdraw requires the owner signature and is the recovery path, including when the vault is frozen.</p>
+  </Frame>;
+}
+function Policies() {
+  return <Frame path="/docs/policies" title="Policies and permissions">
+    <p>The owner configures the policy and registers agents. An agent can request a guarded transfer but cannot edit policy, unfreeze the vault or withdraw.</p>
+    <ul>
+      <li><strong>Destination allowlist:</strong> only configured recipient addresses are eligible.</li>
+      <li><strong>Per-transaction cap:</strong> each request is checked against the USD-denominated transaction ceiling.</li>
+      <li><strong>Epoch cap:</strong> aggregate spend is checked against the configured epoch ceiling. The legacy error name <code className="mono">DailyCapExceeded</code> does not mean a calendar day; the default epoch is approximately 15 minutes.</li>
+      <li><strong>Price band:</strong> the deployed transfer checks Pyth price against the reference snapshot created at vault initialization.</li>
+      <li><strong>Freeze:</strong> the owner can stop agent spending. Owner withdrawal remains available as a recovery path.</li>
+      <li><strong>Timelock:</strong> policy updates are proposed and become effective after the configured slot delay.</li>
+    </ul>
+    <p>Feed identity pinning, staleness validation and reference refresh are source-only. Do not treat them as active controls on the current deployed binary.</p>
+  </Frame>;
+}
+function Errors() {
+  const codes = [
+    ["6001","VaultFrozen","Deployed"], ["6004","DestinationNotAllowed","Deployed"],
+    ["6007","PerTxCapExceeded","Deployed"], ["6008","DailyCapExceeded","Deployed — epoch limit"],
+    ["6011","PriceHalted","Deployed"], ["6013","PriceDeviationTooHigh","Deployed"],
+    ["6016","PolicyNotEffective","Deployed"], ["6025","PoolTooLate","Source / CI only"],
+    ["6026","FeedMismatch","Source only"], ["6027","PriceStale","Source only"]
+  ];
+  return <Frame path="/docs/errors" title="Refusal codes">
+    <p>Codes are derived from the program error enum. Source-only entries are not protections in the immutable devnet deployment.</p>
+    <div className="table-scroll"><table className="spec-table"><thead><tr><th>Code</th><th>Error</th><th>Scope</th></tr></thead><tbody>{codes.map(([code,name,scope]) => <tr key={code}><td className="mono">{code}</td><td className="mono">{name}</td><td>{scope}</td></tr>)}</tbody></table></div>
+    <p><code className="mono">DailyCapExceeded</code> is a published legacy name for an epoch spending limit, not a calendar-day limit. Error codes are stable and must not be renumbered.</p>
+  </Frame>;
+}
+
 export function DocsPage({ path }: { path: string }) {
+  if (path === "/docs/accounts") return <Accounts />;
+  if (path === "/docs/policies") return <Policies />;
+  if (path === "/docs/errors") return <Errors />;
   if (path === "/docs/what") return <What />;
   if (path === "/docs/live") return <Live />;
   if (path === "/docs/not-live") return <NotLive />;
