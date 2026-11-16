@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import { timingSafeEqual } from "node:crypto";
+import { Keypair } from "@solana/web3.js";
+import { createServer as createViteServer } from "vite";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -10,8 +12,15 @@ import { loadPayer, RPC_URL, PROGRAM_ID, MOCK_PROGRAM_ID } from "../src/env.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const PORT = Number(process.env.PORT ?? 8788);
-const payer = loadPayer();
+const PORT = Number(process.env.PORT ?? 3000);
+const payer = (() => {
+  try { return loadPayer(); }
+  catch (error) {
+    if (process.env.NODE_ENV === "production") throw error;
+    console.warn("[rampart] No local sponsor wallet found; using an ephemeral, unfunded keypair for read-only development.");
+    return Keypair.generate();
+  }
+})();
 
 const client = new RampartClient(payer, RPC_URL);
 const demo = new RampartDemo(client);
@@ -116,7 +125,7 @@ const gate = (req: express.Request, res: express.Response): boolean => {
     res.status(401).json({ error: "run token not configured" });
     return false;
   }
-  const given = String(req.get("x-rampart-token") ?? req.query.token ?? "");
+  const given = String(req.get("x-rampart-token") ?? "");
   if (tokensMatch(given, runToken)) return true;
   res.status(401).json({ error: "run token required" });
   return false;
@@ -162,18 +171,25 @@ app.get("/api/demo/status", (_req, res) => {
 });
 
 const webDist = join(__dirname, "..", "web", "dist");
-if (existsSync(webDist)) {
-  app.use(express.static(webDist));
-  app.get(/^\/(?!api\/|healthz).*/, (_req, res) => {
-    res.sendFile(join(webDist, "index.html"));
+
+async function start() {
+  if (process.env.NODE_ENV === "production") {
+    if (!existsSync(webDist)) throw new Error("web build missing; run pnpm build:web");
+    app.use(express.static(webDist));
+    app.get(/^\/(?!api\/|healthz).*/, (_req, res) => res.sendFile(join(webDist, "index.html")));
+  } else {
+    const vite = await createViteServer({
+      configFile: join(__dirname, "..", "vite.config.ts"),
+      server: { middlewareMode: true },
+      appType: "spa",
+    });
+    app.use(vite.middlewares);
+  }
+  app.listen(PORT, () => {
+    console.log(`Rampart ${process.env.NODE_ENV === "production" ? "production" : "development"} server on http://localhost:${PORT}`);
+    console.log(`RPC ${redact(client.connection.rpcEndpoint)}`);
+    console.log(`Sponsor ${payer.publicKey.toBase58()}${process.env.NODE_ENV === "production" ? "" : " (local ephemeral / unfunded)"}`);
+    if (!process.env.RAMPART_RUN_TOKEN) console.log("Sponsor-wallet demo execution is disabled: RAMPART_RUN_TOKEN is not configured.");
   });
 }
-
-app.listen(PORT, () => {
-  console.log(`rampart api on http://localhost:${PORT}`);
-  console.log(`rpc ${redact(client.connection.rpcEndpoint)}`);
-  console.log(`owner ${payer.publicKey.toBase58()}`);
-  if (!existsSync(webDist)) {
-    console.log("web not built yet — run `pnpm build:web`");
-  }
-});
+void start().catch((error) => { console.error("[rampart] startup failed", error); process.exitCode = 1; });

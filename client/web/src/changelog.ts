@@ -11,8 +11,17 @@ export interface Day {
   entries: Entry[];
 }
 
-/** Curated from main, 2 Sep–7 Oct 2026. First commit is 22 Sep. No history before that. */
+/** Curated project history, including the November public-site rebuild. */
 export const CHANGELOG: Day[] = [
+  {
+    date: "2026-11-16",
+    entries: [
+      { scope: "deploy", text: "Frontend and Express API now run in one process. Local development uses Vite middleware; production serves the built frontend and API together." },
+      { scope: "source", text: "Added a public browser-side policy walkthrough. Its outcomes are labelled simulated and do not sign or submit Solana transactions." },
+      { scope: "source", text: "Removed the public demo-token field. Sponsor-wallet RUN and RESET endpoints remain protected server-side and are not exposed as public controls." },
+      { scope: "source", text: "Rebuilt the page-header navigation from a mapped link list to prevent stray literal escape text between links." },
+    ],
+  },
   {
     date: "2026-10-14",
     entries: [

@@ -30,7 +30,6 @@ On the live instruction, before lamports move:
 - per-epoch USD cap (a ~15 minute rate limit, despite the `DailyCapExceeded` name)
 - Pyth price band against the vault's reference
 - halted feed
-- stale feed (refused if the last publish is older than 150 slots)
 - owner freeze
 - timelock on policy changes (~24 seconds; a defence-in-depth control, not the trust boundary)
 - agent cannot withdraw (withdraw requires the owner signature; the transaction is never sent)
