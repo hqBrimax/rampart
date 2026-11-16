@@ -116,7 +116,7 @@ const gate = (req: express.Request, res: express.Response): boolean => {
     res.status(401).json({ error: "run token not configured" });
     return false;
   }
-  const given = String(req.get("x-rampart-token") ?? req.query.token ?? "");
+  const given = String(req.get("x-rampart-token") ?? "");
   if (tokensMatch(given, runToken)) return true;
   res.status(401).json({ error: "run token required" });
   return false;

@@ -31,7 +31,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           <span className="tag">policy vaults for trading agents</span>
         </div>
         <nav className="hdr-right">
-          <a className="pill" href="/">demo</a>
+          <a className="pill" href="/">home</a>
           <a className="pill" href="/docs">docs</a>
           <a className="pill" href="/changelog">changelog</a>
           <a className="pill" href="/status">status</a>
@@ -43,7 +43,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 }
 
 const PAGES = [
-  { href: "/", label: "Whitepaper" },
+  { href: "/whitepaper", label: "Whitepaper" },
   { href: "/docs", label: "Docs" },
   { href: "/changelog", label: "Changelog" },
   { href: "/status", label: "Status" },
@@ -114,7 +114,7 @@ function Whitepaper() {
     <Shell>
       <section className="card page-card">
         <Status />
-        <Nav current="/" />
+        <Nav current="/whitepaper" />
         <h1>Rampart Whitepaper</h1>
         <p className="subtitle">On-chain policy vaults for trading agents on Solana</p>
         <p className="subtitle">Devnet · Immutable program · Public draft · 16 November 2026</p>
@@ -365,7 +365,7 @@ function Whitepaper() {
           </p>
           <p>
             Repo:{" "}
-            <a href="https://github.com/NathanOyewole/rampart">github.com/NathanOyewole/rampart</a>
+            <a href="https://github.com/hqBrimax/rampart">github.com/hqBrimax/rampart</a>
           </p>
           <p>
             Program:{" "}

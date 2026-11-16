@@ -10,8 +10,8 @@ function Shell({ children }: { children: React.ReactNode }) {
           <span className="tag">policy vaults for trading agents</span>
         </div>
         <nav className="hdr-right">
-          <a className="pill" href="/">demo</a>
-          <a className="pill" href="/docs">docs</a>
+          <a className="pill" href="/">home</a>
+          <a className="pill" href="/docs">docs</a>\n          <a className="pill" href="/whitepaper">whitepaper</a>
           <a className="pill" href="/changelog">changelog</a>
           <a className="pill" href="/status">status</a>
         </nav>
@@ -43,7 +43,7 @@ export function ChangelogPage() {
                   <div className="step-body">
                     <div className="step-detail">{e.text}</div>
                     {e.sha && (
-                      <a className="txlink mono" href={`https://github.com/NathanOyewole/rampart/commit/${e.sha}`} target="_blank" rel="noreferrer">
+                      <a className="txlink mono" href={`https://github.com/hqBrimax/rampart/commit/${e.sha}`} target="_blank" rel="noreferrer">
                         {e.sha}
                       </a>
                     )}
@@ -93,7 +93,7 @@ export function StatusPage() {
           setOffline(false);
         }
       } catch {
-        if (!stopped) setOffline(true);
+        if (!stopped) { setOffline(true); setBody(null); }
       }
     };
     tick();

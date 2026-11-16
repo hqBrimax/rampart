@@ -7,7 +7,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           <span className="tag">policy vaults for trading agents</span>
         </div>
         <nav className="hdr-right">
-          <a className="pill" href="/whitepaper">whitepaper</a>
+          <a className="pill" href="/">home</a>\n          <a className="pill" href="/whitepaper">whitepaper</a>
           <a className="pill" href="/docs">docs</a>
           <a className="pill" href="/changelog">changelog</a>
           <a className="pill" href="/status">status</a>
@@ -114,7 +114,7 @@ function Live() {
         <li>Per-transaction USD cap</li>
         <li>Per-epoch USD cap</li>
         <li>Pyth price band against the vault reference</li>
-        <li>Halted-feed rejection. Status must be trading.</li>
+        <li>Halted-feed rejection. Status must be trading; no deployed staleness window.</li>
         <li>Owner freeze</li>
         <li>Timelocked policy change</li>
       </ul>
@@ -128,7 +128,7 @@ function NotLive() {
   return (
     <Frame path="/docs/not-live" title="What is not live">
       <p><span className="mono">guarded_dbc_transfer</span> and the 20–80% Meteora curve band are in source and CI. They are not in the deployed binary. A DBC path needs a new program id.</p>
-      <p>The feed pin and <span className="mono">refresh_reference</span> are in source. The deployed program still accepts any account that decodes as a price, and the reference is snapshotted at init.</p>
+      <p>The feed pin, 150-slot staleness check and <span className="mono">refresh_reference</span> are in source only. The deployed program still accepts any account that decodes as a price, and the reference is snapshotted at init.</p>
       <p>There is no staleness window. A feed that still says trading and has not published is not refused.</p>
       <p>There is no swap. The vault does not call Meteora. It does not co-sign a pool.</p>
     </Frame>
@@ -166,7 +166,7 @@ function Try() {
   return (
     <Frame path="/docs/try" title="Try it">
       <p>Demo: <a href="https://rampart.pxxl.click">rampart.pxxl.click</a></p>
-      <p>Repo: <a href="https://github.com/NathanOyewole/rampart">github.com/NathanOyewole/rampart</a></p>
+      <p>Repo: <a href="https://github.com/hqBrimax/rampart">github.com/NathanOyewole/rampart</a></p>
       <p>The demo spends a sponsor wallet of devnet SOL. A run needs the host token. The page shows the named refusals. The program id on the page is the immutable one.</p>
     </Frame>
   );
