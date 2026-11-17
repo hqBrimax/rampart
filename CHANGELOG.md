@@ -17,6 +17,9 @@ program deployment or a new on-chain security capability.
   RESET and is not required for RUN.
 - Added a four-week product delivery sequence with evidence-based exit criteria.
   These are planning milestones, not claims that the work is complete.
+- Added a Lifto campaign runbook and draft X posts/AMA script. Founder story,
+  fundraise terms, page URL, giveaway status and builder testimonials remain
+  explicit inputs; no countdown or unsupported claim is approved.
 
 ## Evidence and boundaries
 
