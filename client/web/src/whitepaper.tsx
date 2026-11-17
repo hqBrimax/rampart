@@ -82,7 +82,7 @@ function Status() {
       </div>
       <div>
         <dt>Live</dt>
-        <dd>allowlist, caps, Pyth band, halt, freeze, timelock</dd>
+        <dd>allowlist, USD caps, owner freeze, timelocked policy changes</dd>
       </div>
       <div>
         <dt>Source only</dt>
