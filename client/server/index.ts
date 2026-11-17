@@ -144,7 +144,12 @@ app.post("/api/demo/run", async (req, res) => {
   }
   const now = Date.now();
   const ip = req.ip || req.socket.remoteAddress || "unknown";
-  const recentIpRuns = (publicRunsByIp.get(ip) ?? []).filter((at) => now - at < PUBLIC_RUN_WINDOW_MS);
+  for (const [key, timestamps] of publicRunsByIp) {
+    const fresh = timestamps.filter((at) => now - at < PUBLIC_RUN_WINDOW_MS);
+    if (fresh.length) publicRunsByIp.set(key, fresh);
+    else publicRunsByIp.delete(key);
+  }
+  const recentIpRuns = (publicRunsByIp.get(ip) ?? []);
   if (recentIpRuns.length >= PUBLIC_RUNS_PER_IP) {
     res.status(429).json({ error: "demo rate limit reached for this network; try again later" });
     return;
