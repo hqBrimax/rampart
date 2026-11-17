@@ -204,7 +204,7 @@ function Errors() {
   const codes = [
     ["6001","VaultFrozen","Deployed"], ["6004","DestinationNotAllowed","Deployed"],
     ["6007","PerTxCapExceeded","Deployed"], ["6008","DailyCapExceeded","Deployed — epoch limit"],
-    ["6011","PriceHalted","Deployed"], ["6013","PriceDeviationTooHigh","Deployed"],
+    ["6011","PriceHalted","Not claimed — decoder defect"], ["6013","PriceDeviationTooHigh","Not claimed — decoder defect"],
     ["6016","PolicyNotEffective","Deployed"], ["6025","PoolTooLate","Source / CI only"],
     ["6026","FeedMismatch","Source only"], ["6027","PriceStale","Source only"]
   ];
