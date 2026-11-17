@@ -14,6 +14,19 @@ export interface Day {
 /** Curated project history, including the November public-site rebuild. */
 export const CHANGELOG: Day[] = [
   {
+    date: "2026-11-17",
+    entries: [
+      { scope: "live", text: "Restored the live public Devnet demo flow on the product site. The browser can trigger the protected server-side runner, display execution results, and expose Solana explorer links for transaction inspection." },
+      { scope: "deploy", text: "Demo execution requires RAMPART_RUN_TOKEN on the server and a configured, funded Devnet sponsor wallet via RAMPART_WALLET_B64. The token is sent in the x-rampart-token header; it is not a wallet key." },
+      { scope: "source", text: "Kept the public simulated policy walkthrough distinct from live Devnet execution. Simulated outcomes are labelled as simulations and do not sign or submit transactions." },
+      { scope: "source", text: "Rebuilt the public product site with refreshed navigation, product overview, technical documentation, whitepaper, and changelog routes." },
+      { scope: "source", text: "Added restrained glass materials across selected interface surfaces, with subtle blur, edge definition, layered depth, responsive behavior, and reduced-transparency fallbacks." },
+      { scope: "ci", text: "Added frontend TypeScript and production-build checks to CI, alongside the existing program build and test workflow." },
+      { scope: "deploy", text: "Unified frontend and Express API delivery in one server process, with local Vite middleware and production static serving; configured the web service to use the platform-provided port." },
+      { scope: "source", text: "Expanded technical references for account policies, refusal codes, demo authorization, and the scope of on-chain proof. Documented source-only safeguards separately from behavior in the deployed Devnet binary." },
+    ],
+  },
+  {
     date: "2026-11-16",
     entries: [
       { scope: "deploy", text: "Frontend and Express API now run in one process. Local development uses Vite middleware; production serves the built frontend and API together." },
