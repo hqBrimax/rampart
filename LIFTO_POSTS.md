@@ -54,8 +54,14 @@ Guardian's November 2026 threat-model overview documents these attack paths and
 argues that authorization belongs in downstream systems, not in the model:
 https://guardian.security/blog/ai-trading-agent-security/
 
-[ADD: the real observation or incident that caused Rampart to be started. Do not
-claim this external incident was the founder's motivation unless it was.]
+Rampart started as a hobby project after I experienced a personal issue that
+made this problem real to me. I have kept the details of that experience private,
+but it pushed me to explore a simple question: what if an AI trading agent can
+be talked into moving money it should not move?
+
+When the spending limits live in the same process as the agent, a jailbreak can
+get around them. I wanted to explore a boundary the agent itself could not simply
+talk its way past.
 
 ### How Rampart works
 1. Capital is deposited into a program-owned vault.
@@ -152,7 +158,11 @@ request it makes should not be allowed?
 We're building the enforcement boundary outside the agent, directly into a
 Solana program.
 
-[ADD: one truthful paragraph about your background and why you chose this problem.]
+I didn't start with a grand company plan. I started with a personal problem and
+a hobby project. As I kept building, the idea grew into something bigger:
+a tool that helps AI trading agents operate with an independent spending boundary.
+The personal details are private, but the engineering question stayed with me:
+the agent should not be the final authority over the money it can request to move.
 
 You can inspect what exists today: https://rampart.pxxl.click
 
@@ -182,15 +192,18 @@ security-review scope.
 
 “I'm Nathan, founder of Rampart.
 
-[ADD: the real incident or observation that made you start building it.]
+I started building Rampart because of a personal issue I experienced. It began
+as a hobby project. I won't turn the private details into a public story, but
+that experience made me think about what happens when an AI agent can be talked
+into moving money it should not move.
 
-The issue I kept coming back to is this: an AI agent can be useful and still
-make a dangerous request. If the same agent controls the wallet and the policy
-check, the boundary can be weaker than it looks.
+That hobby project grew from a personal issue into a bigger engineering question:
+an AI trading agent can be talked into moving money it should not move. If the
+limits live in the same process as the agent, a jailbreak can get around them.
 
-Rampart puts the spending rule in a Solana program. Capital sits in a
-program-owned vault. The agent requests a transfer. The program checks the
-policy before funds move.
+Rampart moves that boundary outside the agent. Capital sits in a Solana
+program-owned account. The agent signs a request. The program checks the policy
+and either allows the request or refuses it.
 
 We have a public Devnet demo you can run and inspect today. It is early, it is
 not mainnet, and our current immutable deployment has known Pyth limitations
