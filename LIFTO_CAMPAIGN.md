@@ -41,8 +41,10 @@ Do not start Day 1 until these are true:
 - [ ] Record a two-minute walkthrough for Lifto to edit into the Day 4 product video.
 - [ ] Prepare a 60–90 second founder video using the real founder story.
 - [ ] Finish the “Why Rampart, why now” article.
-- [ ] Confirm whether Lifto is running the $100 weekly writer pool, its eligibility
-      requirements, dates and claim process. Do not promise a giveaway until confirmed.
+- [ ] Confirm the $100 weekly Lifto writer pool, eligibility requirements, dates
+      and claim process. Do not promise the pool until confirmed.
+- [ ] If running a separate Rampart community giveaway, agree the prize, judging
+      rules and terms with Lifto before announcing it.
 - [ ] Confirm which people have actually tested Rampart and obtain permission for
       any public quotes.
 - [ ] Prepare the founder's pinned “back us” instructions with the real page URL.
@@ -63,12 +65,9 @@ before scheduling. Every day includes:
 | 2 | Post 2 — writer-pool/giveaway announcement | Update #2; invite builders to write their own take | Lifto confirms the weekly pool |
 | 3 | Post 3 — “Why Rampart, why now” article; Post 4 — proof/status thread | Update #3; share demo and evidence links; ask builders to test | Article and transaction evidence |
 | 4 | Post 5 — product demo video; Post 6 — comparison card | Update #4; community repost circle | Edited product video and accurate comparison |
-| 5 | Post 7 — founder introduction; Post 8 — “Why we chose Lifto” article / AMA invitation | Update #5; host a 30–45 minute AMA if confirmed | Founder story, fundraising rationale, AMA slot |
-| 6 | Post 9 — founder video; Post 10 — one-day-left reminder | Update #6; answer questions and thank supporters | Finished 60–90 second founder video |
-| 7 | Fundraise-live post (campaign launch post) | Update #7; respond to questions and direct supporters to the official page | Fundraiser is actually open |
-
-The PDF describes ten planned posts across the seven days, plus the Day 7 live
-announcement. Keep the launch post separate if the final count requires it.
+| 5 | Post 7 — founder introduction; Post 8 — “Why we chose Lifto” article after the AMA | Update #5; host a 30–45 minute AMA if confirmed | Founder story, fundraising rationale, AMA slot |
+| 6 | Post 9 — founder video; leaderboard/rank post | Update #6; answer questions and thank supporters | Finished 60–90 second founder video; verified leaderboard screenshot |
+| 7 | Post 10 — fundraise-live announcement (Lifto quotes it) | Update #7; respond to questions and direct supporters to the official page | Fundraiser is actually open |
 
 ## Content guardrails
 
