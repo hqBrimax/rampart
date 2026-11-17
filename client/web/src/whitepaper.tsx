@@ -226,16 +226,6 @@ function Whitepaper() {
                 <td>Epoch spend exceeds the per-epoch USD cap</td>
               </tr>
               <tr>
-                <td>Pyth price band</td>
-                <td className="mono">6013 · PriceDeviationTooHigh</td>
-                <td>Price deviates beyond the band</td>
-              </tr>
-              <tr>
-                <td>Halted feed</td>
-                <td className="mono">6011 · PriceHalted</td>
-                <td>Price feed status must be trading</td>
-              </tr>
-              <tr>
                 <td>Owner freeze</td>
                 <td className="mono">6001 · VaultFrozen</td>
                 <td>The owner has frozen the vault</td>
@@ -266,7 +256,7 @@ function Whitepaper() {
             </a>
           </p>
           <p>
-            That run proves the allowlist. It does not prove the USD caps, the Pyth band, or the halted-feed path. Those are in the instruction and still undemonstrated on chain.
+            That transaction proves the allowlist refusal only. It does not prove the USD caps. The immutable deployed Pyth decoder was found to read incorrect fields; its price-band and halted-feed checks are therefore not claimed as reliable protections. The corrected decoder is source-only until a new program id is deployed.
           </p>
         </Section>
 
@@ -276,6 +266,7 @@ function Whitepaper() {
               <Code>guarded_dbc_transfer</Code> and the 20–80% Meteora curve band are in source and CI. Not in the deployed binary. A DBC path needs a new program id.
             </li>
             <li>The feed pin and <Code>refresh_reference</Code> are in source. The deployed program still accepts any account that decodes as a price.</li>
+            <li>The deployed Pyth decoder predates the corrected field offsets. Do not rely on its price-band or halted-feed checks as verified protections.</li>
             <li>No staleness window in the deployed program.</li>
             <li>No swap. The vault does not call Meteora. It does not co-sign a pool.</li>
             <li>No mainnet. No users. No revenue. No token.</li>
