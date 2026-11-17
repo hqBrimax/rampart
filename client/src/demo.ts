@@ -631,9 +631,11 @@ export class RampartDemo {
       const finalState = await this.readState();
       this.rec("info", "final position", `treasury ${Number(finalState.treasuryBalance ?? 0).toFixed(3)} SOL · spent $${finalState.spend?.spentUsd ?? "—"}`);
       await reclaim();
+      this.client = sponsor;
       this.status = "done";
     } catch (e) {
       await reclaim();
+      this.client = sponsor;
       this.status = "failed";
       this.error = String(e);
       throw e;

@@ -59,6 +59,7 @@ export default function App() {
   const [demo, setDemo] = useState<DemoStatus>({ status: "idle", steps: [] });
   const [state, setState] = useState<State>({});
   const [apiError, setApiError] = useState("");
+  const [runError, setRunError] = useState("");
   const [stateError, setStateError] = useState("");
   const [lastChecked, setLastChecked] = useState("");
   const runningRef = useRef(false);
@@ -84,16 +85,15 @@ export default function App() {
     void poll();
     return () => { cancelled = true; clearTimeout(timer); };
   }, [load]);
-  const runPublicWalkthrough = () => {
-    const now = Date.now();
-    setDemo({
-      status: "done",
-      steps: [
-        { seq: 1, label: "Allowed destination", status: "ok", detail: "SIMULATED — destination is included in the example policy allowlist.", ts: now },
-        { seq: 2, label: "Per-transaction cap exceeded", status: "rejected", detail: "SIMULATED — the example policy rejects a request above its transaction ceiling.", ts: now + 1 },
-        { seq: 3, label: "Destination not allowlisted", status: "rejected", detail: "SIMULATED — the example policy rejects a destination outside its allowlist.", ts: now + 2 },
-      ],
-    });
+  const runLiveDemo = async () => {
+    setRunError("");
+    try {
+      await request<{ ok: boolean; status: string }>("/api/demo/run", { method: "POST" });
+      setDemo((current) => ({ ...current, status: "running", error: undefined }));
+      await load();
+    } catch (error) {
+      setRunError(errorMessage(error));
+    }
   };
   const active = demo.status === "running";
   const stateUnavailable = Boolean(stateError);
@@ -143,15 +143,15 @@ export default function App() {
         <div className="proof-panel"><div><span className="scope scope-deployed">DEVNET TRANSACTION</span><h3>DestinationNotAllowed</h3><p>Program error 6004 · the attempted destination was outside the vault allowlist.</p><code className="mono proof-hash">{TX}</code></div><a className="button button-secondary" href={`${EXPLORER}/tx/${TX}?cluster=devnet`} target="_blank" rel="noreferrer">Inspect transaction ↗</a></div>
       </section>
 
-      <section className="section section-border" id="demo"><div className="wrap"><SectionTitle index="04" eyebrow="DEVNET DEMONSTRATION" title="Inspect the system state." copy="Vault and policy data is read-only. The public walkthrough is explicitly simulated and never submits transactions." />
+      <section className="section section-border" id="demo"><div className="wrap"><SectionTitle index="04" eyebrow="DEVNET DEMONSTRATION" title="Run the protocol on Devnet." copy="Launch a real, sponsor-funded execution against the deployed Solana program. Every confirmed transaction is linked below so you can inspect it independently." />
         <div className="demo-toolbar"><div><span className={`status-indicator ${apiError ? "is-down" : active ? "is-running" : "is-up"}`} /> <strong>{apiError ? "Demo API unavailable" : active ? "Demo run in progress" : `Demo status: ${demo.status}`}</strong><small>{lastChecked ? `Last checked ${lastChecked}` : "Waiting for first API response"}</small></div><button className="button button-secondary" onClick={() => void load()}>Refresh state</button></div>
         {(apiError || stateError) && <div className="notice notice-error" role="alert"><strong>Live devnet data unavailable</strong><p>{apiError || stateError}</p></div>}
         <div className="demo-grid"><section className="data-panel"><div className="panel-heading"><span>01 / VAULT STATE</span><span className="scope scope-deployed">LIVE API</span></div>{stateUnavailable ? <p className="empty-state">Vault state unavailable. {stateError}</p> : <><DataRow label="Vault"><Address value={state.vault}/></DataRow><DataRow label="Owner"><Address value={state.owner}/></DataRow><DataRow label="Treasury balance">{state.treasuryBalance == null ? "—" : `${state.treasuryBalance.toFixed(3)} SOL`}</DataRow><DataRow label="Frozen">{state.vaultState?.frozen == null ? "—" : state.vaultState.frozen ? "Yes" : "No"}</DataRow><DataRow label="Reference price">{state.vaultState?.referencePrice ?? "—"}</DataRow><DataRow label="Epoch spend">{state.spend?.spentUsd ? `$${state.spend.spentUsd}` : "—"}</DataRow></>}</section>
         <section className="data-panel"><div className="panel-heading"><span>02 / POLICY</span><span className="scope scope-deployed">LIVE API</span></div>{stateUnavailable ? <p className="empty-state">Policy unavailable until the state API responds.</p> : <><DataRow label="Per-transaction cap">{state.policy?.perTxUsd ? `$${state.policy.perTxUsd}` : "—"}</DataRow><DataRow label="Per-epoch cap">{state.policy?.dailyUsd ? `$${state.policy.dailyUsd}` : "—"}</DataRow><DataRow label="Max slippage">{state.policy?.maxSlippageBps == null ? "—" : `${state.policy.maxSlippageBps} bps`}</DataRow><DataRow label="Allowlisted destinations">{state.policy?.allowlist?.length ?? "—"}</DataRow><DataRow label="Agent"><Address value={state.agent}/></DataRow><DataRow label="Oracle price">{state.feedPrice ? `$${state.feedPrice}` : "—"}</DataRow></>}</section></div>
-        <section className="data-panel activity-panel"><div className="panel-heading"><span>03 / PUBLIC POLICY WALKTHROUGH</span><StatusBadge status={demo.status}/></div>{demo.error && <div className="notice notice-error" role="status">{demo.error}</div>}{demo.steps.length ? <ol className="event-list">{demo.steps.map(item => <Step key={item.seq} item={item}/>)}</ol> : <p className="empty-state">{apiError ? "Live execution history is unavailable while the API is unreachable." : "No live execution has been recorded in this server session. Use the public walkthrough below to explore policy decisions."}</p>}
+        <section className="data-panel activity-panel"><div className="panel-heading"><span>03 / LIVE DEVNET EXECUTION</span><StatusBadge status={demo.status}/></div>{demo.error && <div className="notice notice-error" role="status">{demo.error}</div>}{runError && <div className="notice notice-error" role="alert">{runError}</div>}{demo.steps.length ? <ol className="event-list">{demo.steps.map(item => <Step key={item.seq} item={item}/>)}</ol> : <p className="empty-state">{apiError ? "Execution history is unavailable while the API is unreachable." : "No run has been started in this server session. Launch the Devnet demo to create a fresh vault and watch real transactions land."}</p>}
           <div className="demo-controls">
-            <div className="notice"><strong>Public policy walkthrough</strong><p>This example is simulated in your browser. It does not sign, submit or represent real Solana transactions. Inspect the verified devnet transaction above for actual on-chain evidence.</p></div>
-            <div className="control-actions"><button className="button button-primary" onClick={runPublicWalkthrough}>Run policy walkthrough <span aria-hidden="true">→</span></button><button className="button button-secondary" onClick={() => setDemo({ status: "idle", steps: [] })}>Clear walkthrough</button></div>
+            <div className="notice"><strong>Real Devnet transactions · no wallet connection required</strong><p>Rampart provisions a temporary runner using the project sponsor wallet, creates a fresh vault and mock oracle feed, then exercises accepted and rejected policy paths against the deployed program. The runner reclaims remaining demo funds at the end. Each transaction hash above opens in Solana Explorer.</p></div>
+            <div className="control-actions"><button className="button button-primary" onClick={() => void runLiveDemo()} disabled={active || Boolean(apiError)}>{active ? "Demo running…" : "Run live Devnet demo"} <span aria-hidden="true">→</span></button><button className="button button-secondary" onClick={() => void load()}>Refresh execution</button></div>
           </div>
         </section></div></section>
 
