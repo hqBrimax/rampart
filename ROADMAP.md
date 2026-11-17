@@ -1,131 +1,118 @@
 # Rampart roadmap
 
-Companion to `AUDIT.md`. That document says what is wrong; this one says what
-happens next, in order.
+Companion to `AUDIT.md`. This roadmap separates the deployed product, source-only
+work, and the next delivery milestones. Dates are planning targets, not promises.
 
-## Where it is
+## Current state — 17 November 2026
 
-A Solana program that holds an agent's capital in program-owned PDAs and enforces a
-risk policy inside the instruction that moves funds.
+Rampart is a Solana program that holds an agent's capital in program-owned PDAs and
+enforces policy inside the instruction that moves funds.
 
-- **Live:** devnet, program `6Ea4SqpM...UHEr`, immutable (`--final`)
-- **Guards live:** allowlist, per-tx cap, per-epoch cap, Pyth band, halt, freeze, timelock
-- **In source only:** feed pin, reference refresh, staleness window, the DBC path
-- **Tests:** written, but **not compiling** (see Audit Finding 0)
-- **CI:** red since 18 Oct
-- **Mainnet:** not deployed, and the README says not to move funds yet
+- **Live:** public product site and sponsor-funded Devnet demo at https://rampart.pxxl.click
+- **Deployed program:** `6Ea4SqpMwVE57cghBU4LqhZBSs573cQ8o8FXDitKUHEr`, immutable (`--final`)
+- **Verified deployed controls:** destination allowlist, per-transaction USD cap, per-epoch USD cap, owner freeze, timelocked policy changes, owner-authorized withdrawal
+- **Pyth limitation:** the audit found the deployed decoder reads incorrect fields. The corrected offsets, feed pin, staleness window and reference refresh are source-only. Do not represent the deployed Pyth checks as reliable until a corrected binary is deployed and tested.
+- **Source-only:** feed pin, reference refresh, 150-slot staleness check, Meteora DBC guard
+- **CI:** green on the inspected `main` commit `64fb85a`; 37 tests reported by the repository README
+- **Mainnet:** not deployed; no mainnet funds should be used
 
-The honest one-line status: **a well-built, well-documented devnet proof with a
-broken test gate and a deployed binary that is behind its own source.**
+The public demo has been reported as tested successfully by the founder. Its public
+RUN endpoint is rate-limited; the operator token protects RESET, not RUN. The
+sponsor wallet is server-side and must remain funded and protected.
 
----
+## Product delivery — next four weeks
 
-## Phase 0 - Stop the bleeding (days, not weeks)
+These are proposed milestones for fundraising communication. They must be updated
+if implementation, review, or external dependencies change.
 
-The goal is a green gate and nothing else.
+### Week 1 — Correct the deployed security boundary
 
-1. **Fix the borrow errors** in `tests/test_rampart.rs:560` and `:588` (bind
-   `env.feed` to a local before the call). Confirm `cargo test -p rampart` is green.
-2. **Confirm CI is green** on `main`.
-3. **Add a test for `epoch_len_slots = 0`** - propose it, expect `InvalidCap`
-   (after the fix in Phase 1).
-4. **Record which program id every claim applies to.** The README currently mixes
-   what the source does with what the deployed binary does.
+- Finalize the Pyth decoder correction and account validation in source.
+- Review feed identity pinning, publish-slot staleness, and reference refresh.
+- Add or confirm regression tests for each security invariant.
+- Define the new program ID and migration plan; do not overwrite the immutable deployment.
+- Publish a deployment checklist that ties every claim to a program ID and test.
 
-Exit criteria: CI green, tests running, one commit that says so.
+**Exit evidence:** passing CI, reviewed source diff, tests for each guard, and a
+written Devnet deployment/migration plan. No claim that the corrected guards are
+live until the new binary is deployed and independently exercised.
 
-## Phase 1 - Harden the program (source only, new program id required)
+### Week 2 — Deploy and verify the corrected Devnet program
 
-These are fixes to source. Because the live program is immutable, **none of them
-reach any deployment until Phase 2.**
+- Deploy the reviewed source under a new program ID.
+- Run positive and negative scenarios against that exact ID.
+- Capture transaction signatures and explorer links for each demonstrated guard.
+- Update the demo configuration, docs, README and old-program deprecation notice.
+- Publish a migration guide for vault owners and integrators.
 
-1. **Reject `epoch_len_slots == 0`** in `propose_policy`, defensively again in
-   `apply_policy`. (Audit Finding 1 - a zero epoch bricks the vault.)
-2. **Add the staleness window** to `decode_price`: read the publish slot/offset and
-   reject anything older than a threshold. (Finding 5)
-3. **Add a Pyth program-id check** on the pinned feed. (Finding 6)
-4. **Resolve the "daily cap" mismatch** - either change `DEFAULT_EPOCH_SLOTS` to
-   something like a day, or rename the error and the docs to "rate limit".
-   (Finding 4)
-5. **Decide the timelock** - raise `DEFAULT_TIMELOCK_SLOTS` to hours, or document
-   the ~24-second default as deliberate. (Finding 3)
-6. **Add tests for each of the above.** The tests are the deliverable, not the code.
+**Exit evidence:** new program ID, reproducible test results, transaction evidence,
+and documentation that distinguishes old and new deployments.
 
-Exit criteria: every audit finding either fixed with a test, or explicitly
-documented as accepted.
+### Week 3 — External integration and review
 
-## Phase 2 - Deploy a new program id
+- Choose one agent framework or integration partner; avoid spreading effort across
+  multiple integrations.
+- Complete one end-to-end integration example and a developer quickstart.
+- Invite independent builders to run the demo and record their feedback with
+  permission.
+- Scope an external security review against the exact candidate source and binary.
 
-The current binary cannot be changed. So:
+**Exit evidence:** merged integration or reproducible example, named and
+permissioned feedback, and a written external-review scope. Do not imply an audit
+has happened until a report exists.
 
-1. **Pick the new program id** and document the migration path.
-2. **Deploy the Phase 1 source** to devnet.
-3. **Re-run the demo against the new id** and confirm every guard fires.
-4. **Update the README, docs site, and gaps.md** to describe the new binary.
-5. **Publish the old program as deprecated**, pointing at the new one.
+### Week 4 — Release candidate and distribution
 
-Exit criteria: the deployed binary matches the source, and the docs say which is
-which.
+- Publish the technical paper, architecture, threat model, limitations and
+  migration guide.
+- Resolve review findings or document accepted risks.
+- Publish a versioned Devnet release candidate and reproducible demo evidence.
+- Decide the next gated path: further Devnet iteration, testnet-style validation,
+  or mainnet preparation. Mainnet is not an automatic Week 4 outcome.
 
-## Phase 3 - Distribution (can run in parallel with Phase 1-2)
+**Exit evidence:** versioned release candidate, evidence bundle, and an explicit
+go/no-go decision for the next network stage.
 
-The plugin PR is the wedge. Rampart does not need more features; it needs users.
+## Mainnet gate
 
-1. **Land the Hermes plugin PR** (`sendaifun/solana-agent-kit#636`) - the round-2
-   fixes are in and the catalog review is pending.
-2. **One narrow integration** - pick a single agent framework or a single fund
-   type and make it work end to end.
-3. **Publish the audit and this roadmap** - the honesty is the differentiator, and
-   it is also the fastest way to get a real reviewer.
-4. **A written migration guide** for anyone moving from the old program id.
+Do not move mainnet SOL until all of the following are true:
 
-Exit criteria: one external team or fund using it, or one real integration PR from
-someone else.
+1. The exact program binary has the corrected Pyth decoder, feed identity check,
+   staleness validation and reference-refresh behavior that the docs describe.
+2. Tests exercise the deployed binary's relevant invariants.
+3. An external audit reviews the exact release candidate.
+4. A bug bounty or equivalent disclosure process is established.
+5. A capped rollout and incident/recovery procedure are documented.
 
-## Phase 4 - Mainnet (only after Phase 1-3)
+The Meteora DBC path must either be deployed and verified under the release
+candidate or remain explicitly out of scope. Rampart does not execute swaps.
 
-The README's own gate: *"Do not move mainnet SOL until the feed pin, the refresh,
-and a staleness window are in the binary that would hold the funds."*
+## Business and fundraising track
 
-1. **External audit** of the final source (not the current source).
-2. **Bug bounty** on the exact binary that would hold funds.
-3. **A capped deployment** - a small amount, a low cap, a short epoch.
-4. **The DBC path** - deploy `guarded_dbc_transfer` or explicitly keep it out and
-   say so.
-5. **Then scale**, with the caps raised by a timelocked owner action.
+The protocol is a product primitive; fundraising needs a credible customer and
+commercial thesis. These are unresolved founder decisions, not facts to invent:
 
-Exit criteria: a versioned, audited, bounty-covered program id that the docs
-describe accurately.
-
----
-
-## The business track (parallel, not sequential)
-
-The program is a primitive. A company needs a reason for someone to pay.
-
-- **Answer the monetization question.** Protocol fee, subscription, or token? Right
-  now there is no answer, and investors will ask.
-- **Get the entity right** before any money: a proper company, IP assigned to it, a
-  clean cap table. Lawyer first.
-- **The Vanneck conversation** - the inbound is warm; the token question is the one
-  to settle before the call.
-- **One integration beats ten features.** Distribution is the moat.
-
----
+- **Initial customer:** identify the first buyer/user profile and the specific
+  workflow Rampart protects.
+- **Distribution:** prioritize one agent framework integration and direct builder
+  pilots over a broad feature list.
+- **Monetization:** decide whether revenue comes from protocol usage, a hosted
+  service, enterprise integration/support, or another model. Do not imply a token
+  is required; the product currently works without one.
+- **Entity and ownership:** confirm company formation, IP assignment and cap-table
+  position before accepting investment.
+- **Fundraise:** state the target amount, instrument, runway objective and use of
+  funds before opening the campaign.
 
 ## Explicitly not planned
 
-- **A token before product-market fit.** The vaults work without one; the docs say
-  so, and that should stay true until there is a job only a token can do.
-- **A mainnet deployment of the current binary.** It is behind its own source.
-- **Anything that would make the gaps document less honest.** The honesty is the
-  asset. Do not trade it for a launch date.
-- **Chasing every guard at once.** The order above is the order for a reason: a
-  green gate, then the source, then the deployment, then the distribution.
+- A token before a demonstrated product need and product-market fit.
+- Mainnet deployment of the current immutable binary.
+- Claims of users, TVL, revenue, integrations, reviewers or partners without
+  verifiable evidence and permission to name them.
+- A launch date that outruns the security and deployment gates.
 
----
+## One-sentence version
 
-## The one-sentence version
-
-**Fix the tests, fix the source, deploy a new program id, then go find one user.**
-Everything else is a detail.
+**Correct the deployed security boundary, prove it on a new Devnet program, integrate
+with one agent workflow, and earn the right to prepare for mainnet.**
