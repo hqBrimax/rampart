@@ -129,16 +129,14 @@ const tokensMatch = (given: string, expected: string) => {
   if (a.length !== b.length) return false;
   return timingSafeEqual(a, b);
 };
-const gate = (req: express.Request, res: express.Response): boolean => {
-  if (!runToken) return true;
+const resetGate = (req: express.Request, res: express.Response): boolean => {
   const given = String(req.get("x-rampart-token") ?? "");
-  if (tokensMatch(given, runToken)) return true;
-  res.status(401).json({ error: "run token required" });
+  if (runToken && tokensMatch(given, runToken)) return true;
+  res.status(401).json({ error: "reset is operator-only" });
   return false;
 };
 
 app.post("/api/demo/run", async (req, res) => {
-  if (!gate(req, res)) return;
   demo.reapStalledRun();
   if (demo.status === "running") {
     res.status(409).json({ error: "demo already running" });
@@ -171,7 +169,7 @@ app.post("/api/demo/run", async (req, res) => {
 // step for STALL_MS cannot still be making progress: every step awaits a devnet
 // confirmation, and those are individually timeboxed now.
 app.post("/api/demo/reset", (req, res) => {
-  if (!gate(req, res)) return;
+  if (!resetGate(req, res)) return;
   const was = demo.status;
   demo.reset();
   res.json({ ok: true, was, status: demo.status });
