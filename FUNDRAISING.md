@@ -106,14 +106,32 @@ Suggested use-of-funds categories to price, not pre-filled percentages:
 
 ## 6. Founder story — founder must complete
 
-The Lifto plan asks for the real incident or observation that caused Rampart to
-exist. Do not invent a hack, loss, customer incident or personal story.
+Rampart began as a hobby project after the founder experienced a personal issue
+that made the weakness of agent-controlled spending limits feel concrete. The
+founder has chosen not to disclose the private details publicly at this stage.
 
-- **Trigger:** [What specifically made you start Rampart?]
-- **What failed in the existing approach:** [Founder input]
-- **Why an on-chain policy boundary:** [Founder input]
-- **Why you are the person to build it:** [Founder input]
-- **What changed since the first commit:** [Evidence-backed milestones]
+The project grew from that personal starting point into a tool focused on AI
+trading-agent security.
+
+**Founder-approved origin framing:**
+
+“I started building Rampart because of a personal issue I experienced. It began
+as a hobby project, but as I explored the problem, I saw how useful it could be
+for AI trading agents. An agent can be talked into moving money it should not
+move. If the limits live in the same process as the agent, a jailbreak can get
+around them. Rampart takes a different approach: capital sits in a Solana
+program-owned account. The agent signs a request, and the program allows it or
+refuses it.”
+
+- **Trigger:** personal experience; private details intentionally undisclosed.
+- **What failed in the existing approach:** spending limits colocated with the
+  agent process can be bypassed if that process is manipulated.
+- **Why an on-chain policy boundary:** enforce the decision in the Solana program
+  that controls the program-owned capital, rather than trusting the agent to
+  police itself.
+- **Why you are the person to build it:** founder-built project that started as
+  a hobby and developed through hands-on engineering.
+- **What changed since the first commit:** [Add evidence-backed milestones.]
 
 ## 7. Traction and trust
 
