@@ -26,6 +26,7 @@ const client = new RampartClient(payer, RPC_URL);
 const demo = new RampartDemo(client);
 
 const app = express();
+app.set("trust proxy", 1);
 app.use(cors());
 app.use(express.json());
 
@@ -111,9 +112,17 @@ app.get("/api/state", async (_req, res) => {
   }
 });
 
-// RUN and RESET spend the sponsor wallet, so they stay owner-only unless a token
-// is explicitly configured for a shared/public judge link.
+// Public demo runs use the server-held sponsor wallet. Keep the execution
+// surface bounded: one run at a time, a per-IP rolling limit, and a global
+// daily ceiling. For durable limits across restarts, put this behind an edge
+// rate limiter as well.
 const runToken = process.env.RAMPART_RUN_TOKEN;
+const PUBLIC_RUNS_PER_IP = Number(process.env.RAMPART_PUBLIC_RUNS_PER_IP ?? 2);
+const PUBLIC_RUN_WINDOW_MS = Number(process.env.RAMPART_PUBLIC_RUN_WINDOW_MS ?? 60 * 60 * 1000);
+const PUBLIC_RUNS_PER_DAY = Number(process.env.RAMPART_PUBLIC_RUNS_PER_DAY ?? 6);
+const publicRunsByIp = new Map<string, number[]>();
+const publicRunTimestamps: number[] = [];
+
 const tokensMatch = (given: string, expected: string) => {
   const a = Buffer.from(given);
   const b = Buffer.from(expected);
@@ -121,10 +130,7 @@ const tokensMatch = (given: string, expected: string) => {
   return timingSafeEqual(a, b);
 };
 const gate = (req: express.Request, res: express.Response): boolean => {
-  if (!runToken) {
-    res.status(401).json({ error: "run token not configured" });
-    return false;
-  }
+  if (!runToken) return true;
   const given = String(req.get("x-rampart-token") ?? "");
   if (tokensMatch(given, runToken)) return true;
   res.status(401).json({ error: "run token required" });
@@ -138,11 +144,26 @@ app.post("/api/demo/run", async (req, res) => {
     res.status(409).json({ error: "demo already running" });
     return;
   }
-  demo
-    .run()
-    .catch(() => {
-      /* status captured in demo.error */
-    });
+  const now = Date.now();
+  const ip = req.ip || req.socket.remoteAddress || "unknown";
+  const recentIpRuns = (publicRunsByIp.get(ip) ?? []).filter((at) => now - at < PUBLIC_RUN_WINDOW_MS);
+  if (recentIpRuns.length >= PUBLIC_RUNS_PER_IP) {
+    res.status(429).json({ error: "demo rate limit reached for this network; try again later" });
+    return;
+  }
+  while (publicRunTimestamps.length && now - publicRunTimestamps[0] >= 24 * 60 * 60 * 1000) {
+    publicRunTimestamps.shift();
+  }
+  if (publicRunTimestamps.length >= PUBLIC_RUNS_PER_DAY) {
+    res.status(429).json({ error: "public demo capacity reached for today; try again tomorrow" });
+    return;
+  }
+  recentIpRuns.push(now);
+  publicRunsByIp.set(ip, recentIpRuns);
+  publicRunTimestamps.push(now);
+  demo.run().catch(() => {
+    /* status captured in demo.error */
+  });
   res.status(202).json({ ok: true, status: "running" });
 });
 
