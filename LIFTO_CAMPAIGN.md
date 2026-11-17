@@ -108,7 +108,7 @@ For every post, record:
 
 ## Founder inputs required before final copy
 
-1. The real event or observation that made you start Rampart.
+1. Founder origin is now established: Rampart began as a hobby project after a personal issue. The private details will remain undisclosed; campaign copy uses the founder-approved framing in `LIFTO_POSTS.md`.
 2. The amount being raised, currency, instrument and what the round unlocks.
 3. The exact Lifto fundraiser page URL and confirmed opening date.
 4. Whether the Lifto writer pool is confirmed for this campaign.
