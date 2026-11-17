@@ -1,3 +1,35 @@
+# Rampart — Readiness and documentation update, 17 November 2026
+
+This entry records the post-deployment-readiness review. It does not claim a new
+program deployment or a new on-chain security capability.
+
+## Current-state corrections
+
+- Updated the roadmap to reflect the passing CI run on the inspected `main`
+  commit and the current public Devnet demo.
+- Clarified that the immutable deployed program's Pyth decoder predates the
+  corrected field offsets. The deployed price-band and halted-feed checks are not
+  claimed as reliable protections until a corrected binary is deployed.
+- Kept feed pinning, staleness validation, reference refresh and the Meteora DBC
+  guard explicitly marked source-only.
+- Corrected demo authorization documentation: public RUN is rate-limited and
+  spends sponsor-funded Devnet SOL; `RAMPART_RUN_TOKEN` protects operator-only
+  RESET and is not required for RUN.
+- Added a four-week product delivery sequence with evidence-based exit criteria.
+  These are planning milestones, not claims that the work is complete.
+
+## Evidence and boundaries
+
+- Public demo: https://rampart.pxxl.click
+- Existing immutable Devnet program:
+  `6Ea4SqpMwVE57cghBU4LqhZBSs573cQ8o8FXDitKUHEr`
+- Inspected successful CI run:
+  https://github.com/hqBrimax/rampart/actions/runs/44082330560
+- No mainnet deployment, external audit, customer traction, TVL or revenue is
+  claimed by this update.
+
+---
+
 # Rampart - Audit fixes, 10 November 2026
 
 This is the complete record of what the independent audit found and what changed.
