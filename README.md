@@ -28,8 +28,7 @@ On the live instruction, before lamports move:
 - destination allowlist
 - per-tx USD cap
 - per-epoch USD cap (a ~15 minute rate limit, despite the `DailyCapExceeded` name)
-- Pyth price band against the vault's reference
-- halted feed
+- Pyth price checks are **not claimed as reliable on the immutable deployment**; the deployed decoder predates the corrected offsets (see `AUDIT.md` and `docs/gaps.md`)
 - owner freeze
 - timelock on policy changes (~24 seconds; a defence-in-depth control, not the trust boundary)
 - agent cannot withdraw (withdraw requires the owner signature; the transaction is never sent)
@@ -43,13 +42,8 @@ Observed refusals from the devnet demo:
 | `DailyCapExceeded` | 6008 |
 | `VaultFrozen` | 6001 |
 | `PolicyNotEffective` | 6016 |
-| `PriceDeviationTooHigh` | 6013 |
-| `PriceHalted` | 6011 |
-| `PriceStale` | 6027 |
 
-`PriceHalted` is a halted feed. `PriceStale` is a staleness check (the last publish is
-older than 150 slots). Feed pinning, the staleness window, and the reference refresh are
-in the source but **not in the deployed binary** - see `docs/gaps.md`.
+The deployed program's Pyth decoder was found to read incorrect fields. The corrected decoder, feed pinning, staleness window, and reference refresh are source-only. Until a new program id is deployed and verified, do not rely on the existing immutable binary's Pyth checks as a security boundary. See `AUDIT.md` and `docs/gaps.md`.
 
 ## Accounts
 
@@ -98,14 +92,14 @@ RPC is `RAMPART_RPC`, else Helius devnet from `HELIUS_API_KEY`. Do not point thi
 |---|---|
 | `RAMPART_WALLET_B64` | sponsor keypair, base64 JSON or raw bytes |
 | `HELIUS_API_KEY` or `RAMPART_RPC` | `RAMPART_RPC` wins |
-| `RAMPART_RUN_TOKEN` | optional gate on RUN and RESET |
+| `RAMPART_RUN_TOKEN` | operator-only gate for RESET; public RUN is rate-limited, not token-gated |
 | `PORT` | host-assigned |
 
 Base directory on the host is `client`. `/healthz` redacts `api-key`. If `RAMPART_RUN_TOKEN` is unset, anyone who can open the URL can spend the sponsor's devnet SOL.
 
 ## Tests
 
-37 in CI: 22 litesvm end-to-end, 12 host-side DBC fixtures, 3 unit. Workflow: `.github/workflows/build-sbf.yml`. Names are the test functions in `programs/rampart/tests/`.
+37 in CI on the inspected main commit: 22 LiteSVM end-to-end, 12 host-side DBC fixtures, 3 unit. Check the latest Actions run for current status. Workflow: `.github/workflows/build-sbf.yml`. Names are the test functions in `programs/rampart/tests/`.
 
 ## Layout
 
