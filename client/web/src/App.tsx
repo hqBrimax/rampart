@@ -105,7 +105,7 @@ export default function App() {
           <div className="eyebrow"><span className="live-dot" /> SOLANA / DEVNET <span className="eyebrow-divider">·</span> POLICY ENFORCEMENT LAYER</div>
           <h1>Spending authority for autonomous agents. <em>Enforced on-chain.</em></h1>
           <p className="hero-lede">AI agents can initiate a spend. They should not have unrestricted authority over the capital they operate with. Rampart puts owner-defined policy in the instruction that moves the funds.</p>
-          <div className="hero-actions"><a className="button button-primary" href="#demo">Explore the live demo <span>↗</span></a><a className="text-link" href="/docs">Read technical docs <span>→</span></a></div>
+          <div className="hero-actions"><a className="button button-primary" href="#demo">Explore the live demo <span>↗</span></a><a className="text-link" href="/docs">Read technical docs <span>→</span></a><a className="button button-lifto" href="https://app.lifto.world/tokens/rampart" target="_blank" rel="noopener noreferrer">Vote for Rampart <span>↗</span></a></div>
           <div className="hero-meta"><span>PROGRAM <b className="mono">{shorten(PROGRAM, 12)}</b></span><a href={`${EXPLORER}/address/${PROGRAM}?cluster=devnet`} target="_blank" rel="noreferrer">View on explorer ↗</a></div>
         </div>
         <div className="flow-panel" aria-label="Spending policy flow">

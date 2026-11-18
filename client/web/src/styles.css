@@ -110,6 +110,8 @@
 .site-header{box-shadow:0 8px 28px rgba(0,0,0,.12)}
 .button-secondary{background:rgba(239,248,242,.018)}
 .button-secondary:hover:not(:disabled){background:rgba(239,248,242,.045)}
+.button-lifto{border-color:#456b55;color:var(--accent);background:transparent}
+.button-lifto:hover:not(:disabled){background:rgba(163,230,189,.08);border-color:var(--accent)}
 .scope-deployed{background:rgba(163,230,189,.045)}
 .scope-source{background:rgba(231,189,121,.035)}
 @media(max-width:760px){
