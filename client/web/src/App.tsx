@@ -131,12 +131,10 @@ export default function App() {
           <Guard name="Destination allowlist" detail="Outbound destinations must be explicitly permitted by the vault policy." />
           <Guard name="Per-transaction USD cap" detail="Each guarded transfer is checked against its configured transaction ceiling." />
           <Guard name="Per-epoch USD limit" detail="Spending is tracked over an epoch. The published DailyCapExceeded name does not mean a calendar day." />
-          <Guard name="Pyth price-band check" detail="The live instruction compares the feed price with the vault reference snapshot." />
-          <Guard name="Halted-feed rejection" detail="A feed that is not trading is refused. This is not a deployed staleness check." />
           <Guard name="Owner freeze and policy timelock" detail="The owner can freeze the vault; policy changes become effective after the configured delay." />
-          <Guard name="Feed pinning and staleness window" detail="Implemented in source, but not present in the immutable deployed binary." state="source" />
+          <Guard name="Pyth decoder, feed pinning and staleness fixes" detail="Corrected Pyth field offsets, feed identity pinning, publish-slot staleness validation and reference refresh are source-only. The immutable deployed decoder has a known field-offset defect." state="source" />
           <Guard name="Meteora DBC curve guard" detail="Source and CI only. It gates and releases capital; Rampart does not execute swaps." state="source" />
-        </div><aside className="security-note"><span className="eyebrow">DEPLOYMENT NOTE</span><h3>Source changes do not update this program.</h3><p>The devnet deployment is immutable. Feed pinning, staleness validation, reference refresh and the DBC path require a new program ID and deployment.</p><a className="text-link" href="/docs/not-live">Read current limitations →</a></aside></div>
+        </div><aside className="security-note"><span className="eyebrow">DEPLOYMENT NOTE</span><h3>Source changes do not update this program.</h3><p>The devnet deployment is immutable. The deployed Pyth decoder has a known field-offset defect. Corrected decoding, feed pinning, staleness validation, reference refresh and the DBC path require a new program ID and deployment.</p><a className="text-link" href="/docs/not-live">Read current limitations →</a></aside></div>
       </div></section>
 
       <section className="section wrap" id="proof"><SectionTitle index="03" eyebrow="VERIFIABLE PROOF" title="One refusal. One claim." copy="This transaction demonstrates a guarded transfer rejected because its destination was not allowlisted. It does not independently prove every guard." />

@@ -47,7 +47,7 @@ function Status() {
       </div>
       <div>
         <dt>Live</dt>
-        <dd>allowlist, caps, Pyth band, halt, freeze, timelock</dd>
+        <dd>allowlist, USD caps, owner freeze, timelocked policy changes</dd>
       </div>
       <div>
         <dt>Source only</dt>
@@ -115,13 +115,11 @@ function Live() {
         <li>Destination allowlist</li>
         <li>Per-transaction USD cap</li>
         <li>Per-epoch USD cap</li>
-        <li>Pyth price band against the vault reference</li>
-        <li>Halted-feed rejection. Status must be trading; no deployed staleness window.</li>
         <li>Owner freeze</li>
         <li>Timelocked policy change</li>
       </ul>
       <p>Withdraw requires the owner signature. An agent attempt never reaches the chain. The demo names that refusal <span className="mono">OwnerSignatureRequired</span>.</p>
-      <p>A recorded demo run completed 11 accepted and 7 refused spends. That is a demo, not usage.</p>
+      <p>A recorded demo run exercises accepted and rejected policy paths. Demo activity is not product usage or customer traction. The current immutable deployment's Pyth decoder has a known field-offset defect; do not treat its Pyth price-band or halted-feed checks as verified protections.</p>
     </Frame>
   );
 }
@@ -143,7 +141,7 @@ function Threat() {
       <p>The registered agent is untrusted. It can request an outbound transfer. It supplies the destination and, on the deployed program, the price-feed account.</p>
       <p>It cannot move funds the program refuses. It cannot unfreeze the vault. It cannot change policy. It cannot withdraw. Withdraw is owner-signed, so the agent key has no path to it.</p>
       <p>The owner is trusted for init, freeze, policy, and withdraw. A compromised owner key can still withdraw. Freeze does not block the owner. That is the recovery path.</p>
-      <p>The deployed feed check is a deviation band around a reference set at init. It is not a proof that the price is the market price.</p>
+      <p>The deployed Pyth decoder has a known field-offset defect. Its price-band and feed-status checks are not claimed as reliable until a corrected binary is deployed. Even after correction, a deviation band is not proof that a price is the market price.</p>
     </Frame>
   );
 }
@@ -169,7 +167,7 @@ function Try() {
     <Frame path="/docs/try" title="Try it">
       <p>Demo: <a href="https://rampart.pxxl.click">rampart.pxxl.click</a></p>
       <p>Repo: <a href="https://github.com/hqBrimax/rampart">github.com/hqBrimax/rampart</a></p>
-      <p>The demo spends a sponsor wallet of devnet SOL. A run needs the host token. The page shows the named refusals. The program id on the page is the immutable one.</p>
+      <p>The public RUN endpoint spends sponsor-funded Devnet SOL and is protected by per-IP and global rate limits. RAMPART_RUN_TOKEN protects the operator-only RESET endpoint; it is not required to start a public run. The sponsor wallet remains server-side. The program id on the page is the immutable deployment.</p>
     </Frame>
   );
 }
@@ -195,7 +193,7 @@ function Policies() {
       <li><strong>Destination allowlist:</strong> only configured recipient addresses are eligible.</li>
       <li><strong>Per-transaction cap:</strong> each request is checked against the USD-denominated transaction ceiling.</li>
       <li><strong>Epoch cap:</strong> aggregate spend is checked against the configured epoch ceiling. The legacy error name <code className="mono">DailyCapExceeded</code> does not mean a calendar day; the default epoch is approximately 15 minutes.</li>
-      <li><strong>Price band:</strong> the deployed transfer checks Pyth price against the reference snapshot created at vault initialization.</li>
+      <li><strong>Pyth checks:</strong> the immutable deployed decoder predates the corrected Pyth field offsets. Treat price-band and halted-feed behavior as unverified until a corrected program is deployed under a new program id.</li>
       <li><strong>Freeze:</strong> the owner can stop agent spending. Owner withdrawal remains available as a recovery path.</li>
       <li><strong>Timelock:</strong> policy updates are proposed and become effective after the configured slot delay.</li>
     </ul>
@@ -206,7 +204,7 @@ function Errors() {
   const codes = [
     ["6001","VaultFrozen","Deployed"], ["6004","DestinationNotAllowed","Deployed"],
     ["6007","PerTxCapExceeded","Deployed"], ["6008","DailyCapExceeded","Deployed — epoch limit"],
-    ["6011","PriceHalted","Deployed"], ["6013","PriceDeviationTooHigh","Deployed"],
+    ["6011","PriceHalted","Not claimed — decoder defect"], ["6013","PriceDeviationTooHigh","Not claimed — decoder defect"],
     ["6016","PolicyNotEffective","Deployed"], ["6025","PoolTooLate","Source / CI only"],
     ["6026","FeedMismatch","Source only"], ["6027","PriceStale","Source only"]
   ];
