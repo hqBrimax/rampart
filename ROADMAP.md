@@ -9,11 +9,11 @@ Rampart is a Solana program that holds an agent's capital in program-owned PDAs 
 enforces policy inside the instruction that moves funds.
 
 - **Live:** public product site and sponsor-funded Devnet demo at https://rampart.pxxl.click
-- **Deployed program:** `6Ea4SqpMwVE57cghBU4LqhZBSs573cQ8o8FXDitKUHEr`, immutable (`--final`)
+- **Deployed program:** `6Ea4SqpMwVE57cghBU4LqhZBSs573cQ8o8FXDitKUHEr`, authority `2QXP...`, ELF digest-pinned (see `client/deployment-pin.json`)
 - **Verified deployed controls:** destination allowlist, per-transaction USD cap, per-epoch USD cap, owner freeze, timelocked policy changes, owner-authorized withdrawal
 - **Pyth limitation:** the audit found the deployed decoder reads incorrect fields. The corrected offsets, feed pin, staleness window and reference refresh are source-only. Do not represent the deployed Pyth checks as reliable until a corrected binary is deployed and tested.
 - **Source-only:** feed pin, reference refresh, 150-slot staleness check, Meteora DBC guard
-- **CI:** green on the inspected `main` commit `64fb85a`; 37 tests reported by the repository README
+- **CI:** `build-sbf` plus `verify-deployment` on push, PR and daily; `verify-deployment` checks two RPCs and the docs for stale authority claims
 - **Mainnet:** not deployed; no mainnet funds should be used
 
 The public demo has been reported as tested successfully by the founder. Its public
@@ -30,7 +30,7 @@ if implementation, review, or external dependencies change.
 - Finalize the Pyth decoder correction and account validation in source.
 - Review feed identity pinning, publish-slot staleness, and reference refresh.
 - Add or confirm regression tests for each security invariant.
-- Define the new program ID and migration plan; do not overwrite the immutable deployment.
+- Define the new program ID and migration plan; re-pin the digest before replacing the current deployment.
 - Publish a deployment checklist that ties every claim to a program ID and test.
 
 **Exit evidence:** passing CI, reviewed source diff, tests for each guard, and a
@@ -39,11 +39,13 @@ live until the new binary is deployed and independently exercised.
 
 ### Week 2 — Deploy and verify the corrected Devnet program
 
-- Deploy the reviewed source under a new program ID.
+- Deploy the reviewed source under a new program ID or via a verified upgrade by the pinned authority.
+- Re-pin `client/deployment-pin.json` to the new slot, authority and ELF digest.
 - Run positive and negative scenarios against that exact ID.
 - Capture transaction signatures and explorer links for each demonstrated guard.
 - Update the demo configuration, docs, README and old-program deprecation notice.
 - Publish a migration guide for vault owners and integrators.
+- Keep `verify-deployment.py` green against the new pin before announcement.
 
 **Exit evidence:** new program ID, reproducible test results, transaction evidence,
 and documentation that distinguishes old and new deployments.
@@ -107,7 +109,7 @@ commercial thesis. These are unresolved founder decisions, not facts to invent:
 ## Explicitly not planned
 
 - A token before a demonstrated product need and product-market fit.
-- Mainnet deployment of the current immutable binary.
+- Mainnet deployment of the current binary without a digest-verified upgrade.
 - Claims of users, TVL, revenue, integrations, reviewers or partners without
   verifiable evidence and permission to name them.
 - A launch date that outruns the security and deployment gates.

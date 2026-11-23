@@ -1,0 +1,50 @@
+{
+  "network": "solana-devnet",
+  "program": "6Ea4SqpMwVE57cghBU4LqhZBSs573cQ8o8FXDitKUHEr",
+  "programData": "H8Yu9Big2ui1fUfLLhppew7WErFGDW2E4v9Huvt9d74Z",
+  "deploymentSlot": 502362992,
+  "upgradeAuthority": "2QXPxqAR41JEDdPgdQp2MX3S4F26xNAX4uDn2sqtvS5h",
+  "elfSha256": "78655ed3c76acc7291c832790daabdf103c87898f7bbcff4d6b63f5052cace59",
+  "payloadOffset": 45,
+  "rpcEndpoints": [
+    "https://api.devnet.solana.com",
+    "https://devnet.rpcpool.com"
+  ],
+  "rpcMinimumAgree": 2,
+  "commitment": "finalized",
+  "deployedCapabilities": [
+    "guarded_transfer",
+    "allowlist",
+    "per_tx_cap",
+    "per_epoch_cap",
+    "freeze",
+    "timelock"
+  ],
+  "sourceOnlyCapabilities": [
+    "feed_pin",
+    "feed_staleness",
+    "refresh_reference",
+    "guarded_dbc_transfer"
+  ],
+  "documents": [
+    "README.md",
+    "docs/gaps.md",
+    "AUDIT.md",
+    "CHANGELOG.md",
+    "ROADMAP.md"
+  ],
+  "forbiddenDocClaims": [
+    "--final",
+    "immutable",
+    "upgrade authority is the system program",
+    "authority at offset 8..40"
+  ],
+  "correctionMarkers": [
+    "earlier",
+    "was wrong",
+    "corrected",
+    "do not describe",
+    "not immutable",
+    "not the system program"
+  ]
+}

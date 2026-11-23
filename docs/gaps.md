@@ -1,6 +1,6 @@
 # Gaps
 
-Devnet only. The program at `6Ea4Sq…` is immutable. Source fixes below are not in that binary.
+Devnet only. The deployed binary at `6Ea4Sq…` predates the source fixes below. Its upgrade authority is `2QXPxqAR41JEDdPgdQp2MX3S4F26xNAX4uDn2sqtvS5h`, so the binary could change; pin its ELF digest before relying on any statement here.
 
 FYEO scan, 13 Oct 2026, commit `1f54fe2`. Ten findings. Triage:
 

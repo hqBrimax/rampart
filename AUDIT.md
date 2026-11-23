@@ -3,7 +3,7 @@
 **Date:** 2026-11-10
 **Auditor:** anvil (independent read of the whole repo)
 **Scope:** `programs/rampart`, `programs/oracle-mock`, `client/`, CI, docs
-**Deployed program:** `6Ea4SqpMwVE57cghBU4LqhZBSo573cQ8o8FXDitKUHEr` (devnet, immutable)
+**Deployed program:** `6Ea4SqpMwVE57cghBU4LqhZBSs573cQ8o8FXDitKUHEr` (devnet, upgradeable; authority `2QXP…`, digest-pinned)
 **Tests:** 35 (23 integration + 12 DBC snapshot)
 
 ---
@@ -42,7 +42,7 @@ Finding 2 and Finding 7 are unchanged. See `CHANGELOG.md` for the full record.
 | 4 | Low | `constants.rs` | "Daily" cap is ~15 minutes |
 | 5 | Low | `pyth.rs` | No staleness window |
 | 6 | Info | `pyth.rs` | Hardcoded Pyth offsets, no program-id check |
-| 7 | Info | architecture | Immutable binary means every fix needs a new program id |
+| 7 | Info | architecture | An upgradeable authority means a fix reaches the live binary only after a verified upgrade |
 
 ---
 
@@ -205,9 +205,7 @@ acceptable. A program-id check on the pinned feed would be belt-and-braces.
 
 ### Finding 7 - Info - immutability is a double edge
 
-The devnet program was deployed with `--final`; the upgrade authority is the system
-program and cannot be set again. That is a strong trust signal, and it is the right
-call for a custody program.
+The devnet program's upgrade authority is `2QXPxqAR41JEDdPgdQp2MX3S4F26xNAX4uDn2sqtvS5h` (Option tag 1, Some). It is not the system program. A fix reaches the live binary only through a verified upgrade by that authority, or a new program id. Earlier text claiming `--final` and a system-program authority was wrong.
 
 It also means Findings 1-6 cannot be fixed in place. Every one of them requires a
 new program id and a migration. That is the single most important operational fact

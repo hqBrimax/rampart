@@ -7,7 +7,7 @@ program deployment or a new on-chain security capability.
 
 - Updated the roadmap to reflect the passing CI run on the inspected `main`
   commit and the current public Devnet demo.
-- Clarified that the immutable deployed program's Pyth decoder predates the
+- Clarified that the deployed program's Pyth decoder predates the
   corrected field offsets. The deployed price-band and halted-feed checks are not
   claimed as reliable protections until a corrected binary is deployed.
 - Kept feed pinning, staleness validation, reference refresh and the Meteora DBC
@@ -27,7 +27,7 @@ program deployment or a new on-chain security capability.
 ## Evidence and boundaries
 
 - Public demo: https://rampart.pxxl.click
-- Existing immutable Devnet program:
+- Existing Devnet program (authority `2QXP…`, digest-pinned):
   `6Ea4SqpMwVE57cghBU4LqhZBSs573cQ8o8FXDitKUHEr`
 - Inspected successful CI run:
   https://github.com/hqBrimax/rampart/actions/runs/44082330560
@@ -176,9 +176,7 @@ fixed at init and cannot be changed; a future version should let the owner choos
 The source has the feed-pin check (`FeedMismatch`); the **deployed** program at
 `6Ea4Sq...` predates it. `docs/gaps.md` says so plainly.
 
-This cannot be fixed by a commit. The devnet program was deployed with `--final` and
-its upgrade authority is the system program, so it cannot be changed. Every fix above
-requires a **new program id** and a migration. That is Phase 2 of `ROADMAP.md`.
+The devnet program's upgrade authority is `2QXP…`, not the system program. A fix reaches the live binary only through a verified upgrade by that authority or a new program id. Earlier text claiming `--final` and a system-program authority was wrong; corrected 23 Nov 2026 after independent on-chain reads. Every fix above requires a deployment and a digest re-pin.
 
 ### No Pyth program-id check (INFO)
 
@@ -189,8 +187,7 @@ how the mock demo continues to work.
 
 ### Immutability (INFO)
 
-The program is immutable, so every fix above is source-only until a new program id is
-deployed. That is the single most important operational fact about Rampart.
+The deployed binary is not immutable, but every fix above is source-only until a digest-verified upgrade or a new program id is deployed. That is the most important operational fact about Rampart.
 
 ---
 

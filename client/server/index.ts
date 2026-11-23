@@ -1,11 +1,12 @@
 import express from "express";
 import cors from "cors";
-import { timingSafeEqual } from "node:crypto";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { Keypair } from "@solana/web3.js";
 import { createServer as createViteServer } from "vite";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { PublicKey } from "@solana/web3.js";
 import { RampartClient } from "../src/rampart.js";
 import { RampartDemo } from "../src/demo.js";
 import { loadPayer, RPC_URL, PROGRAM_ID, MOCK_PROGRAM_ID } from "../src/env.js";
@@ -31,6 +32,47 @@ app.use(cors());
 app.use(express.json());
 
 const redact = (value: string) => value.replace(/([?&]api-key=)[^&\s]*/gi, "$1REDACTED");
+
+const PIN_PATH = join(dirname(__dirname), "deployment-pin.json");
+const DEPLOYMENT_PIN = existsSync(PIN_PATH)
+  ? JSON.parse(readFileSync(PIN_PATH, "utf8"))
+  : undefined;
+
+type DeploymentObservation = {
+  programData: string;
+  deploymentSlot: number;
+  authority: string | null;
+  elfSha256: string;
+  matchesPin: boolean;
+};
+
+async function readDeploymentObservation(): Promise<DeploymentObservation | null> {
+  if (!DEPLOYMENT_PIN) return null;
+  const programInfo = await client.connection.getAccountInfo(PROGRAM_ID, "finalized");
+  if (!programInfo) return null;
+  const programData = new PublicKey(programInfo.data.subarray(4, 36));
+  const pdInfo = await client.connection.getAccountInfo(programData, "finalized");
+  if (!pdInfo) return null;
+  const raw = pdInfo.data;
+  if (raw[0] !== 3) return null;
+  const option = raw[12];
+  const authority = option === 1 ? new PublicKey(raw.subarray(13, 45)) : null;
+  const offset = Number(DEPLOYMENT_PIN.payloadOffset);
+  const elfSha256 = createHash("sha256").update(raw.subarray(offset)).digest("hex");
+  const deploymentSlot = Number(raw.readBigUInt64LE(4));
+  const matchesPin =
+    programData.toBase58() === DEPLOYMENT_PIN.programData &&
+    deploymentSlot === DEPLOYMENT_PIN.deploymentSlot &&
+    authority?.toBase58() === DEPLOYMENT_PIN.upgradeAuthority &&
+    elfSha256 === DEPLOYMENT_PIN.elfSha256;
+  return {
+    programData: programData.toBase58(),
+    deploymentSlot,
+    authority: authority?.toBase58() ?? null,
+    elfSha256,
+    matchesPin,
+  };
+}
 
 app.get("/healthz", (_req, res) => {
   res.json({
@@ -68,6 +110,30 @@ app.get("/api/status", async (_req, res) => {
   } catch (e) {
     checks.push({ name: "program", ok: false, level: "down", detail: redact(String(e)).slice(0, 180) });
   }
+  let deployment: DeploymentObservation | null = null;
+  try {
+    deployment = await readDeploymentObservation();
+    const ok = deployment?.matchesPin === true;
+    checks.push({
+      name: "deployment pin",
+      ok,
+      level: ok ? "ok" : "warn",
+      detail: deployment
+        ? ok
+          ? `digest ${deployment.elfSha256.slice(0, 12)}…, slot ${deployment.deploymentSlot}`
+          : `MISMATCH: digest ${deployment.elfSha256.slice(0, 12)}…, slot ${deployment.deploymentSlot}`
+        : DEPLOYMENT_PIN
+          ? "program or ProgramData account not readable"
+          : "no deployment-pin.json in this build",
+    });
+  } catch (e) {
+    checks.push({
+      name: "deployment pin",
+      ok: false,
+      level: "warn",
+      detail: redact(String(e)).slice(0, 180),
+    });
+  }
   try {
     const bal = await client.connection.getBalance(payer.publicKey, "confirmed");
     const sol = bal / 1_000_000_000;
@@ -95,6 +161,7 @@ app.get("/api/status", async (_req, res) => {
     program: PROGRAM_ID.toBase58(),
     mockProgram: MOCK_PROGRAM_ID.toBase58(),
     owner: payer.publicKey.toBase58(),
+    deployment,
     uptime: Math.round(process.uptime()),
     checkedAt: new Date().toISOString(),
     latencyMs: Date.now() - started,

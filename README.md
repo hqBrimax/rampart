@@ -10,7 +10,9 @@ First commit 22 September 2026 (`e993972`, the policy vault and CI). Submitted t
 
 ## What is live
 
-The devnet program was deployed with `solana program deploy --final`. Upgrade authority is the system program (`11111111111111111111111111111111`) and cannot be set again.
+The devnet program is pinned to deployment slot `502362992`, ProgramData `H8Yu9Big2ui1fUfLLhppew7WErFGDW2E4v9Huvt9d74Z`, and ELF digest (bytes from offset 45) `78655ed3c76acc7291c832790daabdf103c87898f7bbcff4d6b63f5052cace59`.
+
+The upgrade authority is **not** the system program. On-chain, the authority Option tag is `1` (Some) and decodes to `2QXPxqAR41JEDdPgdQp2MX3S4F26xNAX4uDn2sqtvS5h`. Earlier versions of this README claimed `solana program deploy --final` with a system-program authority; that claim was wrong and has been corrected. Treat the binary as upgradeable: verify the digest before relying on any statement about deployed behavior. `scripts/verify-deployment.py` does this against two independent RPCs.
 
 | | Source | CI | Devnet `6Ea4Sq…` |
 |---|---|---|---|
@@ -19,7 +21,7 @@ The devnet program was deployed with `solana program deploy --final`. Upgrade au
 
 The DBC path needs a new program id. It is not in the binary a judge hits.
 
-Verify immutability: fetch the program account, read `ProgramData`, authority at offset 8..40.
+Verify the deployed payload: `python3 scripts/verify-deployment.py` (or `pnpm --dir client verify:deployment`). It reads ProgramData from two independent RPCs and checks the slot, authority and ELF digest above. It runs on every push, PR and daily in CI. `/api/status` also reports the live pin match. Do not describe the program as immutable.
 
 ## Guards
 

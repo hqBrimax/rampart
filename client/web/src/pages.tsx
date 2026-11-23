@@ -78,6 +78,13 @@ interface StatusBody {
   checkedAt?: string;
   latencyMs?: number;
   checks?: Check[];
+  deployment?: {
+    programData: string;
+    deploymentSlot: number;
+    authority: string | null;
+    elfSha256: string;
+    matchesPin: boolean;
+  } | null;
   error?: string;
 }
 
@@ -124,6 +131,14 @@ export function StatusPage() {
             <div className="row"><span className="k">latency</span><span className="v mono">{body.latencyMs} ms</span></div>
             <div className="row"><span className="k">uptime</span><span className="v mono">{body.uptime}s</span></div>
             <div className="row"><span className="k">program</span><span className="v mono">{body.program}</span></div>
+            {body.deployment && (
+              <>
+                <div className="row"><span className="k">deployed digest</span><span className="v mono">{body.deployment.elfSha256.slice(0, 16)}…</span></div>
+                <div className="row"><span className="k">deploy slot</span><span className="v mono">{body.deployment.deploymentSlot}</span></div>
+                <div className="row"><span className="k">authority</span><span className="v mono">{body.deployment.authority}</span></div>
+                <div className="row"><span className="k">pin match</span><span className="v mono">{body.deployment.matchesPin ? "yes" : "NO — DEPLOYMENT CHANGED"}</span></div>
+              </>
+            )}
             <div className="row"><span className="k">sponsor</span><span className="v mono">{body.owner}</span></div>
             <ul className="steps">
               {(body.checks ?? []).map((c) => (
