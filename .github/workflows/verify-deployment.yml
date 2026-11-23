@@ -1,0 +1,24 @@
+name: verify-deployment
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-pinned-binary:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify deployed program against pin
+        run: python3 scripts/verify-deployment.py
+
+      - name: Verify docs contain no stale deployment claims
+        run: python3 scripts/verify-deployment.py --json | python3 -c "import json,sys; r=json.load(sys.stdin); assert r['result']=='PASS', r"
