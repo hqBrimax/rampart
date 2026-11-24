@@ -1,0 +1,85 @@
+name: guard-matrix
+
+on:
+  schedule:
+    - cron: "23 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  adversarial-guard-matrix:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        run: npm install -g pnpm@12.9.1
+
+      - name: Install dependencies
+        working-directory: client
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify deployed binary matches pin
+        run: python3 scripts/verify-deployment.py
+
+      - name: Run adversarial guard matrix on devnet
+        working-directory: client
+        env:
+          RAMPART_RPC: https://api.devnet.solana.com
+          RAMPART_REDTEAM_KEYPAIR: ${{ secrets.RAMPART_REDTEAM_KEYPAIR }}
+        run: ./node_modules/.bin/tsx redteam.ts
+
+      - name: Confirm all results on two RPCs
+        env:
+          RESULTS: /tmp/redteam-results.json
+        run: |
+          python3 - <<'PY'
+          import json, os, re, subprocess
+
+          data = json.load(open(os.environ["RESULTS"]))
+          sigs = [re.search(r"sig (\S+)", c["detail"]).group(1) for c in data["cases"]]
+          expected = []
+          for c in data["cases"]:
+              m = re.search(r"code (\d+)", c["detail"])
+              expected.append(m.group(1) if m else "0")
+          names = [c["name"] for c in data["cases"]]
+
+          def statuses(url):
+              body = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "getSignatureStatuses",
+                                 "params": [sigs, {"searchTransactionHistory": True}]})
+              out = subprocess.check_output([
+                  "curl", "-s", "--max-time", "20", "-X", "POST", url,
+                  "-H", "Content-Type: application/json", "-d", body,
+              ], text=True)
+              return json.loads(out)["result"]["value"]
+
+          ok = True
+          values = {}
+          for url in ["https://api.devnet.solana.com", "https://devnet.rpcpool.com"]:
+              values[url] = statuses(url)
+          for i, (name, exp, sig) in enumerate(zip(names, expected, sigs)):
+              codes = []
+              for url, vs in values.items():
+                  v = vs[i]
+                  if not v:
+                      codes.append("NOT_FOUND")
+                      continue
+                  err = v.get("err")
+                  code = str(err["InstructionError"][1].get("Custom")) if isinstance(err, dict) and "InstructionError" in err else "0"
+                  codes.append(code)
+              good = all(c == exp for c in codes)
+              ok &= good
+              print(f"{name}: {'OK' if good else 'FAIL'} expected={exp} observed={codes}")
+          raise SystemExit(0 if ok else 1)
+          PY
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: guard-matrix-results
+          path: /tmp/redteam-results.json
+          if-no-files-found: warn

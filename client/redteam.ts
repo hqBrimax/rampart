@@ -11,7 +11,9 @@ import { RPC_URL, PROGRAM_ID } from "./src/env.js";
 import { agentPda, policyPda, spendPda, treasuryPubkey, vaultPda } from "./src/rampart.js";
 
 const RPC = process.env.RAMPART_RPC || "https://api.devnet.solana.com";
-const funder = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(readFileSync("/tmp/redteam-owner.json", "utf8"))));
+const funderJson = process.env.RAMPART_REDTEAM_KEYPAIR;
+if (!funderJson) throw new Error("RAMPART_REDTEAM_KEYPAIR is required (JSON byte array)");
+const funder = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(funderJson)));
 const owner = Keypair.generate();
 const fp = new RampartClient(funder, RPC);
 const seedTx = new Transaction().add(SystemProgram.transfer({ fromPubkey: funder.publicKey, toPubkey: owner.publicKey, lamports: 40_000_000 }));
