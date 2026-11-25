@@ -1,3 +1,36 @@
+# Rampart — Verification and status pin, 25 November 2026
+
+This entry records the deployment-verification work, the adversarial guard matrix, and the live status pin. No new program deployment, no mainnet, and no new on-chain capability.
+
+## Added
+
+- `client/deployment-pin.json`: program ID, ProgramData `H8Yu9Big…`, slot `502362992`, authority `2QXP…`, ELF digest `78655ed3…ace59`.
+- `scripts/verify-deployment.py`: reads ProgramData from two RPCs, checks agreement, scans docs for stale claims.
+- `.github/workflows/verify-deployment.yml`: push, PR and daily.
+- `client/redteam.ts`: adversarial guard matrix — 10 deployed guards, fresh keypairs, raw `skipPreflight` transactions.
+- `docs/evidence/guard-matrix.md`: verified results.
+- `.github/workflows/guard-matrix.yml`: weekly and manual; verifies the pin before spending devnet SOL, confirms every signature on two RPCs, uploads evidence.
+- `/api/status` reports a `deployment` object with `matchesPin`.
+
+## Corrected
+
+- Corrected the earlier deployment-authority claim in README, AUDIT, CHANGELOG, ROADMAP and `docs/gaps.md`. Authority is `2QXP…`, Option tag `1`; the binary is upgradeable and identified by digest.
+- Reclassified feed identity and freshness as tester-side setup, not enforced checks on the deployed binary.
+- Marked the price path as excluded from verification claims: the deployed Pyth decoder reads the wrong fields.
+
+## Verified
+
+- Guard matrix: 10/10 cases finalized on both `api.devnet.solana.com` and `devnet.rpcpool.com` with matching codes (`0`, `6004`, `6006`, `6007`, `6001`, `6016`, `6005`, `0`, `6008`, `6003`).
+- Deployment verifier passes on both RPCs; negative-tested with a corrupted pin.
+- CI: `verify-deployment` run `45626861018` on `03a8e88` success; `guard-matrix` run `45393027438` on `5dcabf4` success.
+- After host redeploy, `/api/status` returns `deployment.matchesPin: true` and a `deployment pin` check at `ok`.
+
+## Boundaries
+
+Devnet only. No mainnet deployment. Feed pin, staleness, reference refresh and DBC remain source-only. The price path is not a security boundary on the deployed binary.
+
+---
+
 # Rampart — Readiness and documentation update, 17 November 2026
 
 This entry records the post-deployment-readiness review. It does not claim a new
