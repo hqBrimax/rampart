@@ -30,7 +30,7 @@ On the live instruction, before lamports move:
 - destination allowlist
 - per-tx USD cap
 - per-epoch USD cap (a ~15 minute rate limit, despite the `DailyCapExceeded` name)
-- Pyth price checks are **not claimed as reliable on the immutable deployment**; the deployed decoder predates the corrected offsets (see `AUDIT.md` and `docs/gaps.md`)
+- Pyth price checks are **not claimed as reliable on the deployed binary**; the deployed decoder predates the corrected offsets (see `AUDIT.md` and `docs/gaps.md`)
 - owner freeze
 - timelock on policy changes (~24 seconds; a defence-in-depth control, not the trust boundary)
 - agent cannot withdraw (withdraw requires the owner signature; the transaction is never sent)
@@ -45,7 +45,7 @@ Observed refusals from the devnet demo:
 | `VaultFrozen` | 6001 |
 | `PolicyNotEffective` | 6016 |
 
-The deployed program's Pyth decoder was found to read incorrect fields. The corrected decoder, feed pinning, staleness window, and reference refresh are source-only. Until a new program id is deployed and verified, do not rely on the existing immutable binary's Pyth checks as a security boundary. See `AUDIT.md` and `docs/gaps.md`.
+The deployed program's Pyth decoder was found to read incorrect fields. The corrected decoder, feed pinning, staleness window, and reference refresh are source-only. Until a new binary is deployed and verified, do not rely on the deployed Pyth checks as a security boundary. See `AUDIT.md` and `docs/gaps.md`.
 
 ## Accounts
 
@@ -99,9 +99,33 @@ RPC is `RAMPART_RPC`, else Helius devnet from `HELIUS_API_KEY`. Do not point thi
 
 Base directory on the host is `client`. `/healthz` redacts `api-key`. If `RAMPART_RUN_TOKEN` is unset, anyone who can open the URL can spend the sponsor's devnet SOL.
 
+## Adversarial guard matrix
+
+`client/redteam.ts` exercises every deployed guard with fresh owner and agent keypairs, raw transactions and `skipPreflight`, so refusals land on-chain. All 10 cases were independently confirmed finalized on `api.devnet.solana.com` and `devnet.rpcpool.com` with matching error codes. Evidence: `docs/evidence/guard-matrix.md`.
+
+| Guard | Code | Guard | Code |
+|---|---|---|---|
+| baseline success | 0 | early `applyPolicy` | 6016 |
+| destination not allowlisted | 6004 | destination = treasury | 6005 |
+| amount zero | 6006 | epoch cap exceeded | 6008 |
+| per-tx cap exceeded | 6007 | agent inactive | 6003 |
+| frozen vault | 6001 | epoch cap first transfer | 0 |
+
+The price path (6013) is excluded: the deployed decoder reads the wrong fields, so a result would not establish whether the guard works. Feed identity (6026), staleness (6027), `refresh_reference` and `guarded_dbc_transfer` are source-only.
+
+Reproduce:
+
+```bash
+cd client
+RAMPART_RPC=https://api.devnet.solana.com ./node_modules/.bin/tsx redteam.ts
+python3 ../scripts/verify-deployment.py
+```
+
+CI: `.github/workflows/guard-matrix.yml` runs weekly (Mon 04:23 UTC) and on manual dispatch. It verifies the pin before spending devnet SOL, runs the matrix from a dedicated keypair stored as `RAMPART_REDTEAM_KEYPAIR`, confirms all signatures on two RPCs, and uploads the result as an artifact.
+
 ## Tests
 
-37 in CI on the inspected main commit: 22 LiteSVM end-to-end, 12 host-side DBC fixtures, 3 unit. Check the latest Actions run for current status. Workflow: `.github/workflows/build-sbf.yml`. Names are the test functions in `programs/rampart/tests/`.
+Rust tests run in `.github/workflows/build-sbf.yml`; the deployment verifier runs in `.github/workflows/verify-deployment.yml` on push, PR and daily; the guard matrix runs in `.github/workflows/guard-matrix.yml` weekly and on manual dispatch. Check the latest Actions runs for current status. Test names are the functions in `programs/rampart/tests/`.
 
 ## Layout
 
@@ -109,6 +133,10 @@ Base directory on the host is `client`. `/healthz` redacts `api-key`. If `RAMPAR
 programs/rampart/src/     program
 programs/oracle-mock/     deterministic feed for the demo
 client/                   SDK, demo, API, SPA
+client/deployment-pin.json  program identity pin
+client/redteam.ts           adversarial guard-matrix runner
+scripts/verify-deployment.py  two-RPC pin verifier + docs scan
+docs/evidence/guard-matrix.md  verified guard results
 docs/gaps.md              what is not built
 ```
 
