@@ -8,6 +8,18 @@ Live demo: [rampart.pxxl.click](https://rampart.pxxl.click)
 
 First commit 22 September 2026 (`e993972`, the policy vault and CI). Submitted to Colosseum World's Fair on 9 October 2026. No earlier history.
 
+## Tech stack
+
+| Layer | Stack |
+|---|---|
+| On-chain program | Rust 2021, Anchor 1.2, Solana CLI 4.3, `litesvm` tests |
+| Client / demo | TypeScript, Node 22, pnpm 12.9, Vite, Express, `tsx` |
+| Verification | Python 3, two-RPC deployment pin verifier |
+| CI | GitHub Actions: SBF build + Rust tests, TypeScript check, deployment pin, adversarial guard matrix |
+| Network | Devnet only. No mainnet deployment or main-wallet access. |
+
+The deployable unit is the long-running Express/SPA image in `client/Dockerfile`. `docker-compose.yml` at the repo root builds that same image; it is a convenience wrapper, not a second deploy path.
+
 ## What is live
 
 The devnet program is pinned to deployment slot `502362992`, ProgramData `H8Yu9Big2ui1fUfLLhppew7WErFGDW2E4v9Huvt9d74Z`, and ELF digest (bytes from offset 45) `78655ed3c76acc7291c832790daabdf103c87898f7bbcff4d6b63f5052cace59`.
@@ -90,6 +102,14 @@ RPC is `RAMPART_RPC`, else Helius devnet from `HELIUS_API_KEY`. Do not point thi
 
 `client/Dockerfile` is the deploy. Long-running process, not a serverless function. A run holds confirmations open for longer than a function timeout.
 
+Local container build:
+
+```bash
+docker compose up --build
+```
+
+This builds `client/Dockerfile`; it does not add a second runtime path. Secrets stay in the host environment and are never written into the image.
+
 | Var | |
 |---|---|
 | `RAMPART_WALLET_B64` | sponsor keypair, base64 JSON or raw bytes |
@@ -125,7 +145,19 @@ CI: `.github/workflows/guard-matrix.yml` runs weekly (Mon 04:23 UTC) and on manu
 
 ## Tests
 
-Rust tests run in `.github/workflows/build-sbf.yml`; the deployment verifier runs in `.github/workflows/verify-deployment.yml` on push, PR and daily; the guard matrix runs in `.github/workflows/guard-matrix.yml` weekly and on manual dispatch. Check the latest Actions runs for current status. Test names are the functions in `programs/rampart/tests/`.
+Rust tests run in `.github/workflows/build-sbf.yml`; the deployment verifier runs in `.github/workflows/verify-deployment.yml` on push, PR and daily; the guard matrix runs in `.github/workflows/guard-matrix.yml` weekly and on manual dispatch. Check the latest Actions runs for current status.
+
+Reproduce locally:
+
+```bash
+cargo-build-sbf --manifest-path programs/rampart/Cargo.toml
+cargo-build-sbf --manifest-path programs/oracle-mock/Cargo.toml
+cargo test -p rampart
+pnpm --dir client run typecheck
+python3 scripts/verify-deployment.py
+```
+
+Test names are the functions in `programs/rampart/tests/`. The TypeScript check covers the client and demo. The verifier checks the deployed identity against two independent RPCs; it does not assert immutability.
 
 ## Layout
 
@@ -133,6 +165,8 @@ Rust tests run in `.github/workflows/build-sbf.yml`; the deployment verifier run
 programs/rampart/src/     program
 programs/oracle-mock/     deterministic feed for the demo
 client/                   SDK, demo, API, SPA
+client/Dockerfile         deploy image
+docker-compose.yml        local build wrapper for client/Dockerfile
 client/deployment-pin.json  program identity pin
 client/redteam.ts           adversarial guard-matrix runner
 scripts/verify-deployment.py  two-RPC pin verifier + docs scan

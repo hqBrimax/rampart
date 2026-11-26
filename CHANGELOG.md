@@ -1,3 +1,26 @@
+# Rampart — Repository metadata and discoverability, 26 November 2026
+
+A DevSpot repo assessment flagged missing test structure, containerization and a declared tech stack. Those were metadata/discoverability gaps, not missing capabilities: Rust tests and `client/Dockerfile` already existed. This entry makes them explicit without changing deployed behaviour.
+
+## Added
+
+- `README.md` now has a Tech stack table: Rust/Anchor/Solana, TypeScript/Node/pnpm/Vite/Express, Python verifier, GitHub Actions, devnet-only.
+- `README.md` now has reproducible local commands for SBF builds, `cargo test -p rampart`, TypeScript check and the deployment verifier.
+- `docker-compose.yml` builds the existing `client/Dockerfile`; it is a local wrapper, not a second deploy path. No secrets are written into the image.
+- GitHub topics: `solana`, `anchor`, `rust`, `typescript`, `security`, `policy-engine`, `devnet`, `smart-contracts`.
+
+## Verified
+
+- Deployment verifier: PASS on both RPCs; digest `78655ed3…ace59`, authority `2QXP…`, slot `502362992`; docs contain no stale deployment claims.
+- `pnpm --dir client run typecheck`: passed.
+- `cargo test -p rampart`: 40 tests passed (3 unit, 12 DBC snapshot, 25 litesvm integration).
+
+## Boundaries
+
+No new deployment, no mainnet, no main-wallet access, no program change. The deployed binary remains upgradeable and identified by the pinned digest. Source-only capabilities remain source-only.
+
+---
+
 # Rampart — Verification and status pin, 25 November 2026
 
 This entry records the deployment-verification work, the adversarial guard matrix, and the live status pin. No new program deployment, no mainnet, and no new on-chain capability.

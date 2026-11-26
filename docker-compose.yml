@@ -1,0 +1,15 @@
+services:
+  rampart-demo:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    image: rampart-demo:local
+    ports:
+      - "8788:8788"
+    environment:
+      PORT: "8788"
+      NODE_ENV: "production"
+      RAMPART_WALLET_B64: "${RAMPART_WALLET_B64:-}"
+      HELIUS_API_KEY: "${HELIUS_API_KEY:-}"
+      RAMPART_RPC: "${RAMPART_RPC:-}"
+      RAMPART_RUN_TOKEN: "${RAMPART_RUN_TOKEN:-}"
